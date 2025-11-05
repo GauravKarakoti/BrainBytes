@@ -1,0 +1,100 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import './clerk.css';
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 120 3% 20%;
+    --card: 0 0% 98%;
+    --card-foreground: 120 3% 20%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 120 3% 20%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 210 40% 98%;
+    --primary-depth: 142 76% 36%;
+    --primary-light: 142 71% 60%;
+    --primary-dark: 144 61% 18%;
+    --secondary: 198 93% 60%;
+    --secondary-foreground: 210 40% 98%;
+    --secondary-depth: 199 89% 48%;
+    --muted: 150 7% 94%;
+    --muted-foreground: 141 6% 45%;
+    --accent: 150 7% 94%;
+    --accent-foreground: 120 3% 20%;
+    --highlight: 327 87% 82%;
+    --highlight-foreground: 210 40% 98%;
+    --highlight-depth: 329 86% 70%;
+    --super: 271 91% 65%;
+    --super-foreground: 0 0% 98%;
+    --super-depth: 271 81% 56%;
+    --destructive: 0 100% 65%;
+    --destructive-foreground: 0 0% 98%;
+    --destructive-depth: 0 82% 54%;
+    --disabled: 160 6% 90%;
+    --disabled-foreground: 120 3% 50%;
+    --loading: 160 6% 90%;
+    --border: 160 6% 90%;
+    --input: 144 6% 83%;
+    --ring: 142 71% 45%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 140 7% 8%;
+    --foreground: 140 7% 82%;
+    --card: 140 6% 10%;
+    --card-foreground: 140 7% 82%;
+    --popover: 140 6% 10%;
+    --popover-foreground: 140 7% 82%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 120 9% 2%;
+    --secondary: 198 93% 60%;
+    --secondary-foreground: 240 9% 2%;
+    --muted: 142 7% 29%;
+    --muted-foreground: 141 5% 48%;
+    --accent: 142 71% 19%;
+    --accent-foreground: 140 7% 82%;
+    --super: 271 91% 65%;
+    --super-foreground: 0 0% 98%;
+    --super-depth: 271 81% 56%;
+    --destructive: 0 100% 65%;
+    --destructive-foreground: 0 0% 98%;
+    --disabled: 144 8% 12%;
+    --disabled-foreground: 120 3% 30%;
+    --loading: 144 8% 12%;
+    --border: 144 8% 12%;
+    --input: 143 9% 18%;
+    --ring: 142 71% 40%;
+  }
+}
+
+@layer base {
+  html,
+  body,
+  :root {
+    @apply h-full;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .heading-section {
+    @apply px-8 py-6 text-center font-display text-3xl font-bold leading-normal tracking-tighter sm:text-4xl sm:leading-snug md:text-5xl;
+  }
+  .focus-visible {
+    @apply ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+}
+
+@layer utilities {
+  .paused {
+    animation-play-state: paused;
+  }
+}
