@@ -1,4 +1,4 @@
-import 'server-only'
+'use server'
 
 import { auth } from '@clerk/nextjs/server'
 import { and, eq, sql } from 'drizzle-orm'

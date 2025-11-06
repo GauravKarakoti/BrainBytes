@@ -23,9 +23,9 @@ export const getUserProgress = async (userId?: string | null) => {
         with: { activeCourse: true },
       })
     },
-    ['get_user_progress', _userId],
+    ['get_user_progress', _userId as string],
     { revalidate: 180, tags: ['get_user_progress', `get_user_progress::${_userId}`] }
-  )(_userId)
+  )(_userId as string)
 }
 
 export const getUserSubscription = async () => {

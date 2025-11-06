@@ -2,10 +2,8 @@ import 'server-only'
 
 import { unstable_cache as NextCache } from 'next/cache'
 import { auth } from '@clerk/nextjs/server'
-import { desc, eq } from 'drizzle-orm'
 
 import { db } from '@/db/drizzle'
-import { userProgress } from '@/db/schema'
 
 export const getTopUsers = async () => {
   return NextCache(
@@ -50,7 +48,7 @@ export const getUserRank = async (userId?: string | null) => {
       const userIndex = allUsers.findIndex((user) => user.userId === _uid)
       return userIndex === -1 ? null : userIndex + 1
     },
-    ['user_rank', _userId],
+    ['user_rank', _userId as string],
     { revalidate: 60, tags: ['user_rank', `user_rank::${_userId}`] }
-  )(_userId)
+  )(_userId as string)
 }
