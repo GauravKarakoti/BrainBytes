@@ -15,6 +15,7 @@ export const userProgress = pgTable('user_progress', {
   points: integer('points').notNull().default(0),
   gems: integer('gems').notNull().default(0),
   walletAddress: text('wallet_address').unique(),
+  level: integer('level').notNull().default(0),
 })
 
 export const userProgressRelations = relations(userProgress, ({ one, many }) => ({
@@ -22,7 +23,7 @@ export const userProgressRelations = relations(userProgress, ({ one, many }) => 
     fields: [userProgress.activeCourseId],
     references: [courses.id],
   }),
-  userQuestProgress: many(userQuestProgress), 
+  userQuestProgress: many(userQuestProgress),
 }))
 
 export type UserProgressType = typeof userProgress.$inferSelect

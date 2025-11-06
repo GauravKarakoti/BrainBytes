@@ -11,7 +11,7 @@ import {
   userProgress,
   challenges,
 } from '@/db/schema'
-
+import { getLevelFromPoints } from '@/config/levels'
 import {
   updateQuestProgress,
   checkMilestoneQuests,
@@ -75,10 +75,15 @@ export async function upsertChallengeProgress(challengeId: number) {
   }
 
   if (!isCompleted) {
+    const currentPoints = currentUserProgress.points
+    const newPoints = currentPoints + POINTS_PER_CHALLENGE
+    const newLevelData = getLevelFromPoints(newPoints)
+
     await db
       .update(userProgress)
       .set({
-        points: sql`${userProgress.points} + ${POINTS_PER_CHALLENGE}`,
+        points: newPoints,
+        level: newLevelData.level,
       })
       .where(eq(userProgress.userId, userId))
 

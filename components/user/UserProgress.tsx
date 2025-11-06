@@ -2,7 +2,7 @@ import NextLink from 'next/link'
 import NextImage from 'next/image'
 import { InfinityIcon, Ban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
+import { getLevelFromPoints } from '@/config/levels'
 import { getUserProgress } from '@/db/queries/userProgress'
 
 type UserProgressProps = {
@@ -12,8 +12,8 @@ type UserProgressProps = {
 
 export async function UserProgress({ hasActiveSubscription, plain }: UserProgressProps) {
   const userProgress = await getUserProgress()
-
   const { points = 0, hearts = 0, activeCourse } = userProgress ?? {}
+  const { level, title: levelTitle } = getLevelFromPoints(points)
   const { title = 'Select course', altCode } = activeCourse ?? {}
 
   return (
@@ -48,6 +48,14 @@ export async function UserProgress({ hasActiveSubscription, plain }: UserProgres
           {points}
         </NextLink>
       </Button>
+      <div
+        className={`hidden items-center gap-x-1 rounded-md px-3 py-2 text-sm font-bold ${
+          plain ? 'text-inherit' : 'text-muted-foreground'
+        } lg:flex`}
+      >
+        <span className="text-lg">{levelTitle}</span>
+        <span className="opacity-70">(Lvl {level})</span>
+      </div>
       <Button
         variant="ghost"
         className={plain ? 'text-inherit dark:hover:bg-black/10' : 'text-rose-500'}

@@ -1,5 +1,5 @@
 import 'server-only'
-
+import { getLevelFromPoints } from '@/config/levels'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/db/drizzle'
 import {
@@ -108,7 +108,6 @@ export const updateQuestProgress = async (
         totalPointsReward += quest.rewardPoints
         totalGemsReward += quest.rewardGems
       } else {
-        // Target not met: Just update progress
         await db
           .update(userQuestProgress)
           .set({
@@ -118,31 +117,30 @@ export const updateQuestProgress = async (
       }
     }
 
-    // Apply rewards if any quests were completed
     if (totalPointsReward > 0 || totalGemsReward > 0) {
+      const newPoints = currentUserProgress.points + totalPointsReward
+      const newGems = currentUserProgress.gems + totalGemsReward
+      const newLevelData = getLevelFromPoints(newPoints)
+
       await db
         .update(userProgress)
         .set({
-          points: sql`${userProgress.points} + ${totalPointsReward}`,
-          gems: sql`${userProgress.gems} + ${totalGemsReward}`,
+          points: newPoints,
+          gems: newGems,
+          level: newLevelData.level,
         })
         .where(eq(userProgress.userId, userId))
     }
 
-    // Revalidate caches
     revalidateTag(`get_user_progress::${userId}`)
     revalidateTag('get_user_progress')
     revalidateTag(`get_quests::${userId}`)
-    revalidateTag('get_quests') // Added global revalidation for cron resets
+    revalidateTag('get_quests')
   } catch (error) {
     console.error('Failed to update quest progress:', error)
   }
 }
 
-/**
- * Checks and updates milestone quests (e.g., total points).
- * Call this after any action that changes a value milestones might track.
- */
 export const checkMilestoneQuests = async (userId: string) => {
   try {
     const questsToUpdate = await db.query.quests.findMany({
@@ -212,11 +210,16 @@ export const checkMilestoneQuests = async (userId: string) => {
     }
 
     if (totalPointsReward > 0 || totalGemsReward > 0) {
+      const newPoints = currentUserProgress.points + totalPointsReward
+      const newGems = currentUserProgress.gems + totalGemsReward
+      const newLevelData = getLevelFromPoints(newPoints)
+
       await db
         .update(userProgress)
         .set({
-          points: sql`${userProgress.points} + ${totalPointsReward}`,
-          gems: sql`${userProgress.gems} + ${totalGemsReward}`,
+          points: newPoints,
+          gems: newGems,
+          level: newLevelData.level,
         })
         .where(eq(userProgress.userId, userId))
     }
