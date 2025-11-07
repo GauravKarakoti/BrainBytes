@@ -23,9 +23,10 @@ type ShopItemCardProps = {
   hearts: number
   points: number
   gems: number
+  bytes: number
 }
 
-export function ShopItemCard({ item, hearts, points, gems }: ShopItemCardProps) {
+export async function ShopItemCard({ item, hearts, points, gems, bytes }: ShopItemCardProps) {
   const [isPending, startTransition] = useTransition()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -35,7 +36,11 @@ export function ShopItemCard({ item, hearts, points, gems }: ShopItemCardProps) 
   const isCryptoPurchase = !!item.byteCost && item.byteCost > 0;
   const isGemPurchase = 'gemsRequired' in item && item.gemsRequired && item.gemsRequired > 0;
 
-  const canPurchase = (isCryptoPurchase || (isGemPurchase && hasEnoughGems)) && !isPending;
+  const hasEnoughBytes = item.byteCost ? Number(bytes) >= item.byteCost : true;
+  const canPurchase = ((isCryptoPurchase && hasEnoughBytes) || (isGemPurchase && hasEnoughGems)) && !isPending;
+  console.log("Item:",item);
+  console.log("Bytes:",Number(bytes));
+  console.log("Byte Balance:", hasEnoughBytes)
 
   const handlePurchase = async () => {
     if (isGemPurchase) {
@@ -67,12 +72,13 @@ export function ShopItemCard({ item, hearts, points, gems }: ShopItemCardProps) 
           const contract = new ethers.Contract(BYTE_TOKEN_ADDRESS, byteTokenAbi, signer);
           
           const amount = ethers.parseUnits(item.byteCost!.toString(), B_DECIMALS);
-
+          console.log("Amount:",amount);
           toast.loading("Please approve the transaction in your wallet...");
           const tx = await contract.transfer(SHOP_WALLET_ADDRESS, amount);
           
           toast.loading("Processing transaction...");
           await tx.wait(); 
+          console.log("TX:",tx);
 
           const result = await verifyRedemption(item.id, tx.hash);
 
@@ -94,6 +100,7 @@ export function ShopItemCard({ item, hearts, points, gems }: ShopItemCardProps) 
   if (isCryptoPurchase) {
     costText = `${item.byteCost} BYTE`;
     buttonText = `Redeem for ${costText}`;
+    if (!hasEnoughBytes) buttonText = "Not enough bytes";
   } else if (isGemPurchase) {
     costText = `${item.gemsRequired} 💎`;
     buttonText = `Purchase for ${costText}`;
@@ -103,6 +110,7 @@ export function ShopItemCard({ item, hearts, points, gems }: ShopItemCardProps) 
      buttonText = `Purchase for ${costText}`;
      if (!hasEnoughPoints) buttonText = "Not enough points";
   }
+  console.log("Button Text:",buttonText);
 
   return (
     <div className="group relative overflow-hidden rounded-xl border-2 bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg">
@@ -142,7 +150,7 @@ export function ShopItemCard({ item, hearts, points, gems }: ShopItemCardProps) 
         className="mt-4 w-full"
         variant={canPurchase ? 'primary' : 'ghost'}
       >
-        {isLoading || isPending ? 'Purchasing...' : canPurchase ? 'Purchase' : 'Not Enough Points'}
+        {isLoading || isPending ? 'Purchasing...' : buttonText}
       </Button>
     </div>
   )
@@ -153,13 +161,15 @@ type ShopGridProps = {
   hearts: number
   points: number
   gems: number
+  bytes: number
 }
 
-export function ShopGrid({ items, hearts, points, gems }: ShopGridProps) {
+export function ShopGrid({ items, hearts, points, gems, bytes }: ShopGridProps) {
+  console.log("Item sent:",items);
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => (
-        <ShopItemCard key={item.id} item={item} hearts={hearts} points={points} gems={gems} />
+        <ShopItemCard key={item.id} item={item} hearts={hearts} points={points} gems={gems} bytes={bytes} />
       ))}
     </div>
   )

@@ -1,4 +1,4 @@
-import 'server-only'
+'use server'
 
 import { unstable_cache as NextCache } from 'next/cache'
 import { auth } from '@clerk/nextjs/server'

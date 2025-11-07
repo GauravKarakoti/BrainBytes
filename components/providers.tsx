@@ -2,16 +2,14 @@
 
 import { type ReactNode } from 'react'
 import { WagmiProvider, createConfig, http } from 'wagmi'
-import { mainnet, sepolia, polygon } from 'wagmi/chains'
+import { sepolia } from 'wagmi/chains'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/components/theme/provider'
 
 const config = createConfig({
-  chains: [mainnet, sepolia, polygon],
+  chains: [sepolia],
   transports: {
-    [mainnet.id]: http(),
     [sepolia.id]: http(),
-    [polygon.id]: http(),
   },
 })
 

@@ -50,7 +50,7 @@ export function CoursePill({
         <span className="rounded-full bg-white p-[0.15em] shadow-md">
           <span className="relative block size-[1.1em] overflow-hidden rounded-inherit">
             <NextImage
-              src={`/img/flags/${icon}.svg`}
+              src={`/img/flags/${icon}.png`}
               alt={`${title} icon`}
               fill
               className="object-cover"

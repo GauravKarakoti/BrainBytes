@@ -1,4 +1,4 @@
-import 'server-only'
+'use server'
 import { getLevelFromPoints } from '@/config/levels'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/db/drizzle'

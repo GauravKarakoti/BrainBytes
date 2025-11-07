@@ -22,7 +22,7 @@ export async function UserProgress({ hasActiveSubscription, plain }: UserProgres
         <NextLink href="/courses">
           {altCode ? (
             <NextImage
-              src={`/img/flags/${altCode}.svg`}
+              src={`/img/flags/${altCode}.png`}
               alt={title}
               width={32}
               height={32}

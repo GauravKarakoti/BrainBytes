@@ -1,7 +1,5 @@
 "use server";
 
-import "server-only";
-
 import { revalidatePath } from "next/cache";
 import { asc, count, desc, eq, ilike, inArray } from "drizzle-orm";
 import { db } from "@/db/drizzle";

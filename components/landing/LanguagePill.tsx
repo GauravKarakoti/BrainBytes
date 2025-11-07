@@ -50,7 +50,7 @@ export function LanguagePill({
         <span className="rounded-full bg-white p-[0.15em] shadow-md">
           <span className="relative block size-[1.1em] overflow-hidden rounded-inherit">
             <NextImage
-              src={`/img/flags/${flag}.svg`}
+              src={`/img/flags/${flag}.png`}
               alt={`${title} flag`}
               fill
               className="object-cover"

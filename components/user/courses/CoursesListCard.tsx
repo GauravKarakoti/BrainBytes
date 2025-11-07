@@ -49,7 +49,7 @@ export function CoursesListCard({ activeId, course }: CoursesListCardProps) {
       >
         <AspectRatio ratio={3 / 2}>
           <NextImage
-            src={`/img/flags/${altCode}.svg`}
+            src={`/img/flags/${altCode}.png`}
             alt={`${title} flag`}
             fill
             className="rounded-md border object-cover drop-shadow-md"
