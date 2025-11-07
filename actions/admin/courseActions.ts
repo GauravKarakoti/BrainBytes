@@ -7,8 +7,8 @@ import * as schema from "@/db/schema";
 import { getIsAdmin } from "@/lib/admin";
 import { type GetListParams } from "./types";
 
-const checkAdmin = () => {
-  if (!getIsAdmin()) {
+const checkAdmin = async () => {
+  if (!(await getIsAdmin())) {
     throw new Error("403: Unauthorized");
   }
 };
@@ -17,7 +17,7 @@ type CourseSortKeys = keyof typeof schema.courses.$inferSelect;
 const validSortKeys = new Set<string>(["id", "title", "altCode"]);
 
 export const getCoursesList = async (params: GetListParams) => {
-  checkAdmin();
+  await checkAdmin();
   const { page, perPage } = params.pagination;
   const { field, order } = params.sort;
   const filter = params.filter;

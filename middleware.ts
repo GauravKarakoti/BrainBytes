@@ -9,8 +9,8 @@ export default clerkMiddleware(
     // For admin routes, just ensure user is authenticated
     // The actual admin check happens in the page component using getIsAdmin()
     auth().protect()
-  },
-  { debug: process.env.NODE_ENV !== 'production' }
+  }
+  // Removed debug flag - it was causing massive log spam
 )
 
 export const config = {

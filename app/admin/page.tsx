@@ -12,8 +12,8 @@ const AdminApp = dynamic(() => import("@/components/admin/App"), {
   ),
 });
 
-const AdminPage = () => {
-  const isAdmin = getIsAdmin();
+const AdminPage = async () => {
+  const isAdmin = await getIsAdmin();
 
   if (!isAdmin) {
     redirect("/");

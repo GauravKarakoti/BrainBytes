@@ -59,3 +59,4 @@ pnpm-debug.log*
 
 # Optional: if you use Tailwind or TypeScript
 .next-env.d.ts
+LEADERBOARD_FIX.md
