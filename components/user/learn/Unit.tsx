@@ -7,7 +7,7 @@ import type { UnitType, LessonType } from '@/db/schema'
 type UnitProps = {
   unit: UnitType
   lessons: (LessonType & { completed: boolean })[]
-  activeLessonId: number
+  activeLessonId: number | undefined
   activeLessonPercentage: number
   variant?: ComponentProps<typeof LearnButton>['variant']
 }

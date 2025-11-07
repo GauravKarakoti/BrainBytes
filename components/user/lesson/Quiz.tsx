@@ -48,10 +48,22 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
       setTimeout(() => {
         startTransition(() => {
           upsertChallengeProgress(challenge.id)
-            .then(() => {
-              onComplete()
+            .then((result) => {
+              if (result?.error === 'already_completed') {
+                // Challenge already completed, just move to next one
+                console.log('Challenge already completed, moving to next')
+                onComplete()
+              } else if (result?.error) {
+                toast.error('Failed to save progress')
+                console.error('Challenge progress error:', result.error)
+              } else {
+                onComplete()
+              }
             })
-            .catch(() => toast.error('Something went wrong'))
+            .catch((error) => {
+              console.error('Challenge progress error:', error)
+              toast.error('Something went wrong')
+            })
         })
       }, 1000)
     } else {
@@ -59,11 +71,14 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
       startTransition(() => {
         reduceHearts()
           .then((res) => {
-            if (res.error === 'hearts') {
+            if (res?.error === 'hearts') {
               toast.error('No hearts left!')
             }
           })
-          .catch(() => toast.error('Something went wrong'))
+          .catch((error) => {
+            console.error('Hearts error:', error)
+            toast.error('Something went wrong')
+          })
       })
     }
   }

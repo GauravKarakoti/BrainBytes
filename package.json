@@ -14,7 +14,8 @@
     "db:migrate": "pnpm env:load pnpm drizzle-kit migrate",
     "db:studio": "pnpm env:load pnpm drizzle-kit studio",
     "db:push": "pnpm env:load pnpm drizzle-kit push",
-    "db:seed": "pnpm env:load pnpm tsx ./scripts/seed.ts"
+    "db:seed": "pnpm env:load pnpm tsx ./scripts/seed.ts",
+    "db:update-users": "pnpm env:load pnpm tsx ./scripts/update-user-data.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^5.1.3",
