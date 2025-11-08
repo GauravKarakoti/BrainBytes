@@ -7,21 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Quiz } from '@/components/user/lesson/Quiz'
 import { useExitModal } from '@/store/use-exit-modal'
 import { useHeartsModal } from '@/store/use-hearts-modal'
+import type { ChallengeType, ChallengeOptionType } from '@/db/schema/challenges'
 
-type Challenge = {
-  id: number
-  type: 'SELECT' | 'HINT'
-  question: string
-  lessonId: number
-  order: number
-  challengeOptions: Array<{
-    id: number
-    challengeId: number
-    option: string
-    correct: boolean
-    imageSrc: string | null
-    audioSrc: string | null
-  }>
+type ChallengeOption = ChallengeOptionType
+
+type Challenge = ChallengeType & {
+  challengeOptions: ChallengeOption[]
   completed: boolean
 }
 
