@@ -88,6 +88,43 @@ export function CompetitionRoom({ challenge }: Props) {
     }
   }, [status, challenge.id, error]);
 
+  useEffect(() => {
+    if (!match?.id || !userId) return;
+
+    const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY!, {
+      cluster: process.env.PUSHER_CLUSTER!,
+      authEndpoint: '/api/pusher/auth',
+    });
+
+    const channelName = `private-match-${match.id}`;
+    const channel = pusherClient.subscribe(channelName);
+
+    channel.bind('match-start', (data: { match: ChallengeMatchType }) => {
+      setMatch(data.match);
+      setStatus('in_progress');
+      toast.dismiss();
+      toast.success('Opponent found! The match has started.');
+    });
+
+    channel.bind('opponent-progress', (data: { senderId: string, codeLength: number }) => {
+      if (data.senderId !== userId) {
+        setOpponentCodeLength(data.codeLength);
+      }
+    });
+
+    channel.bind('match-over', (data: { winnerId: string }) => {
+      setWinnerId(data.winnerId);
+      setStatus('completed');
+      toast.dismiss();
+    });
+
+    return () => {
+      pusherClient.unsubscribe(channelName);
+      pusherClient.disconnect();
+    };
+
+  }, [match?.id, userId]);
+
   const handleCodeChange = (value: string | undefined) => {
     if (value === undefined) return;
     setCode(value);
