@@ -1,6 +1,5 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { db } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
@@ -9,6 +8,7 @@ import { ethers } from 'ethers'
 import { SHOP_ITEMS } from '@/config/shop'
 import { B_DECIMALS } from '@/lib/ethers'
 import { redeemedTransactions } from '@/db/schema' 
+import { requireUser } from '@/lib/auth0'
 
 const RPC_PROVIDER_URL = process.env.RPC_PROVIDER_URL!;
 const SHOP_WALLET_ADDRESS = process.env.NEXT_PUBLIC_SHOP_WALLET_ADDRESS!;
@@ -19,10 +19,8 @@ const byteTokenAbi = [
 ];
 
 export async function verifyRedemption(itemId: number, txHash: string) {
-  const { userId } = await auth()
-  if (!userId) {
-    return { error: 'Unauthorized' }
-  }
+  const user = await requireUser()
+  const userId = user.id
 
   const item = SHOP_ITEMS.find((i) => i.id === itemId);
   if (!item || !item.byteCost) {

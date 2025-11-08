@@ -1,16 +1,13 @@
-import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getLesson, getLessonPercentage } from '@/db/queries/lessons'
 import { getUserProgress } from '@/db/queries/userProgress'
 import { getCourseProgress } from '@/db/queries/units'
 import { LessonClient } from './LessonClient'
+import { requireUser } from '@/lib/auth0'
 
 export default async function LessonPage() {
-  const { userId } = await auth()
-
-  if (!userId) {
-    redirect('/')
-  }
+  const user = await requireUser()
+  const userId = user.id
 
   const courseProgress = await getCourseProgress(userId)
 

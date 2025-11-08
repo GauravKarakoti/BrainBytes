@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { ShoppingBag, Gem } from 'lucide-react'
 import { ShopGrid } from '@/components/user/shop/ShopGrid'
@@ -6,13 +5,11 @@ import { getUserProgress } from '@/db/queries/userProgress'
 import { SHOP_ITEMS } from '@/config/shop'
 import { WalletManager } from '@/components/user/ConnectWalletButton'
 import { BYTEBalance } from '@/lib/token'
+import { requireUser } from '@/lib/auth0'
 
 export default async function Shop() {
-  const { userId } = await auth()
-
-  if (!userId) {
-    redirect('/')
-  }
+  const user = await requireUser()
+  const userId = user.id
 
   const userProgress = await getUserProgress(userId)
 

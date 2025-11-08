@@ -1,9 +1,9 @@
 'use server'
 
 import { unstable_cache as NextCache } from 'next/cache'
-import { auth } from '@clerk/nextjs/server'
 
 import { db } from '@/db/drizzle'
+import { getOptionalUser } from '@/lib/auth0'
 
 export const getTopUsers = async () => {
   return NextCache(
@@ -30,9 +30,9 @@ export const getUserRank = async (userId?: string | null) => {
   let _userId = userId
 
   if (!_userId) {
-    const { userId: _uid } = await auth()
-    if (!_uid) return null
-    _userId = _uid
+    const user = await getOptionalUser()
+    if (!user) return null
+    _userId = user.id
   }
 
   return NextCache(

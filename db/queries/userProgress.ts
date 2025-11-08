@@ -1,9 +1,9 @@
 'use server'
 
 import { unstable_cache as NextCache } from 'next/cache'
-import { auth } from '@clerk/nextjs/server'
 
 import { db } from '@/db/drizzle'
+import { getOptionalUser } from '@/lib/auth0'
 
 export const getUserProgress = async (userId?: string | null) => {
   if (userId === null) return null
@@ -11,9 +11,9 @@ export const getUserProgress = async (userId?: string | null) => {
   let _userId = userId
 
   if (!_userId) {
-    const { userId: _uid } = await auth()
-    if (!_uid) return null
-    _userId = _uid
+    const user = await getOptionalUser()
+    if (!user) return null
+    _userId = user.id
   }
 
   return NextCache(
@@ -29,12 +29,12 @@ export const getUserProgress = async (userId?: string | null) => {
 }
 
 export const getUserSubscription = async () => {
-  const { userId } = await auth();
+  const user = await getOptionalUser()
 
-  if (!userId) return null;
+  if (!user) return null
 
   const data = await db.query.userSubscription.findFirst({
-    where: ({ userId: uid }, { eq }) => eq(uid, userId),
+    where: ({ userId: uid }, { eq }) => eq(uid, user.id),
   });
 
   if (!data) return null;

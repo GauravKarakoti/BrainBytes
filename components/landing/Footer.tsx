@@ -1,5 +1,7 @@
+"use client"
+
 import NextLink from 'next/link'
-import { ClerkLoaded, SignedIn, SignedOut, SignUpButton } from '@clerk/nextjs'
+import { useUser } from '@auth0/nextjs-auth0/client'
 import { Asterisk, ArrowDown } from 'lucide-react'
 import { MotionDiv } from '@/components/motion'
 import { AnimatedTitle } from '@/components/motion/AnimatedTitle'
@@ -18,6 +20,8 @@ function StartCTA() {
 }
 
 export function Footer() {
+  const { user, isLoading } = useUser()
+
   return (
     <footer className="space-y-4 px-1 pb-4">
       <MotionDiv
@@ -80,22 +84,21 @@ export function Footer() {
             </div>
           </MotionDiv>
         </div>
-        <ClerkLoaded>
-          <div className="absolute right-1/4 top-1/3 md:right-1/3 md:top-[30%]">
-            <SignedOut>
-              <SignUpButton mode="modal">
-                <button className="rounded-full">
-                  <StartCTA />
-                </button>
-              </SignUpButton>
-            </SignedOut>
-            <SignedIn>
-              <NextLink href="/learn" className="rounded-full">
-                <StartCTA />
-              </NextLink>
-            </SignedIn>
-          </div>
-        </ClerkLoaded>
+        <div className="absolute right-1/4 top-1/3 md:right-1/3 md:top-[30%]">
+          {isLoading ? (
+            <div className="rounded-full opacity-75">
+              <StartCTA />
+            </div>
+          ) : user ? (
+            <NextLink href="/learn" className="rounded-full">
+              <StartCTA />
+            </NextLink>
+          ) : (
+            <a href="/api/auth/login?screen_hint=signup" className="rounded-full">
+              <StartCTA />
+            </a>
+          )}
+        </div>
       </MotionDiv>
       <p className="text-center max-sm:text-sm">
         © 2025 — Bytes by{' '}

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ClerkProvider } from '@clerk/nextjs'
+import { UserProvider } from '@auth0/nextjs-auth0/client'
 import { ThemeProvider } from '@/components/theme/provider'
 import { Analytics } from '@/components/Analytics'
 import { Toaster } from '@/components/ui/sonner'
@@ -29,17 +29,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          fontSize: '0.875rem',
-          borderRadius: '0.5rem',
-          colorPrimary: 'hsl(142, 71%, 45%)',
-        },
-      }}
-    >
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${fonts} flex flex-col font-sans`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${fonts} flex flex-col font-sans`}>
+        <UserProvider>
           <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
             <AppProviders>
               <ExitModal />
@@ -49,9 +41,9 @@ export default function RootLayout({
               <Toaster position="top-right" richColors />
             </AppProviders>
           </ThemeProvider>
-          <Analytics />
-        </body>
-      </html>
-    </ClerkProvider>
+        </UserProvider>
+        <Analytics />
+      </body>
+    </html>
   )
 }

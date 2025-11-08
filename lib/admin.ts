@@ -1,12 +1,17 @@
-import { auth } from "@clerk/nextjs/server";
+import { getOptionalUser } from '@/lib/auth0'
+
+const parseAdminEmails = () =>
+  process.env.AUTH0_ADMIN_EMAILS?.split(',')
+    .map((value) => value.trim())
+    .filter(Boolean) ?? []
 
 export const getIsAdmin = async () => {
-  const { userId } = await auth();
+  const user = await getOptionalUser()
 
-  if (!userId) {
-    return false;
+  if (!user?.email) {
+    return false
   }
 
-  const adminIds = process.env.CLERK_ADMIN_IDS?.split(",") || [];
-  return adminIds.includes(userId);
-};
+  const adminEmails = parseAdminEmails()
+  return adminEmails.includes(user.email)
+}

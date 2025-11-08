@@ -1,18 +1,15 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { revalidateTag } from 'next/cache'
 import { db } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ethers } from 'ethers'
+import { requireUser } from '@/lib/auth0'
 
 export const savewallet_address = async (wallet_address: string) => {
-  const { userId } = await auth()
-
-  if (!userId) {
-    return { error: 'Unauthorized' }
-  }
+  const user = await requireUser()
+  const userId = user.id
 
   if (!ethers.isAddress(wallet_address)) {
     return { error: 'Invalid wallet address' }

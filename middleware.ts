@@ -1,18 +1,9 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge'
 
-const isPublicRoute = createRouteMatcher(['/', '/buttons'])
-
-export default clerkMiddleware(
-  (auth, req) => {
-    if (isPublicRoute(req)) return
-
-    // For admin routes, just ensure user is authenticated
-    // The actual admin check happens in the page component using getIsAdmin()
-    auth().protect()
-  }
-  // Removed debug flag - it was causing massive log spam
-)
+export default withMiddlewareAuthRequired({
+  publicRoutes: ['/', '/buttons', '/api/webhooks/:path*', '/api/cron/:path*', '/api/auth/:path*'],
+})
 
 export const config = {
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: ['/learn/:path*', '/leaderboard/:path*', '/quests/:path*', '/shop/:path*', '/lesson/:path*'],
 }

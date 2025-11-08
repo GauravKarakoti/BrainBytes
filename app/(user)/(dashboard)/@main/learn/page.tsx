@@ -1,6 +1,5 @@
 import NextLink from 'next/link'
 import { redirect } from 'next/navigation'
-import { auth } from '@clerk/nextjs/server'
 import { MoveLeft, Trophy, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Unit } from '@/components/user/learn/Unit'
@@ -8,9 +7,11 @@ import { Unit } from '@/components/user/learn/Unit'
 import { getUserProgress } from '@/db/queries/userProgress'
 import { getUnits, getCourseProgress } from '@/db/queries/units'
 import { getLessonPercentage } from '@/db/queries/lessons'
+import { requireUser } from '@/lib/auth0'
 
 export default async function Learn() {
-  const { userId } = await auth()
+  const user = await requireUser()
+  const userId = user.id
 
   const userProgressPromise = getUserProgress(userId)
   const courseProgressPromise = getCourseProgress(userId)

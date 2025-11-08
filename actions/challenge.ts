@@ -1,6 +1,5 @@
 'use server'
 
-import { auth, currentUser } from '@clerk/nextjs/server'
 import { and, eq, sql } from 'drizzle-orm'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { byteTokenContract, B_DECIMALS } from '@/lib/ethers'
@@ -16,16 +15,14 @@ import {
   updateQuestProgress,
   checkMilestoneQuests,
 } from '@/actions/quest'
+import { requireUser } from '@/lib/auth0'
 
 const POINTS_PER_CHALLENGE = 10
 const TOKENS_PER_CHALLENGE = 5;
 
 export async function upsertChallengeProgress(challengeId: number) {
-  const { userId } = await auth()
-
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
+  const user = await requireUser()
+  const userId = user.id
 
   console.log('[upsertChallengeProgress] Starting for challenge:', challengeId, 'user:', userId)
 
@@ -40,8 +37,6 @@ export async function upsertChallengeProgress(challengeId: number) {
     console.log('[upsertChallengeProgress] Creating user progress for user:', userId)
     
     // Get the current user from Clerk to populate name and image
-    const user = await currentUser()
-    
     // Get the first available course
     const firstCourse = await db.query.courses.findFirst()
     
@@ -52,8 +47,8 @@ export async function upsertChallengeProgress(challengeId: number) {
     await db.insert(userProgress).values({
       userId,
       activeCourseId: firstCourse.id,
-      userName: user?.firstName || user?.username || 'User',
-      userImgSrc: user?.imageUrl || '/logo.svg',
+      userName: user.name,
+      userImgSrc: user.picture,
     })
 
     currentUserProgress = await db.query.userProgress.findFirst({
@@ -174,11 +169,8 @@ export async function upsertChallengeProgress(challengeId: number) {
 }
 
 export async function reduceHearts() {
-  const { userId } = await auth()
-
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
+  const user = await requireUser()
+  const userId = user.id
 
   const existingUserProgress = await db.query.userProgress.findFirst({
     where: eq(userProgress.userId, userId),

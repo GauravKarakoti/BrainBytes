@@ -2,7 +2,6 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { auth, currentUser } from '@clerk/nextjs/server'
 
 import { eq } from 'drizzle-orm'
 
@@ -12,14 +11,15 @@ import { getCourseById } from '@/db/queries/courses'
 import { getUserProgress } from '@/db/queries/userProgress'
 
 import { BaseError, GenericError, ServerError } from '@/lib/errors'
+import { requireUser } from '@/lib/auth0'
+
+const FALLBACK_NAME = 'Learner'
+const FALLBACK_AVATAR = '/logo.svg'
 
 export async function selectCourse(courseId: number) {
   try {
-    const [{ userId }, user] = await Promise.all([auth(), currentUser()])
-
-    if (!userId || !user) {
-      throw new ServerError('Login to access course.')
-    }
+    const user = await requireUser()
+    const userId = user.id
 
     const course = await getCourseById(courseId)
 
@@ -45,8 +45,6 @@ export async function selectCourse(courseId: number) {
 
     const selection = {
       activeCourseId: courseId,
-      userName: user.firstName || user.username || 'User',
-      userImgSrc: user.imageUrl || '/logo.svg',
     }
 
     if (currentUserProgress) {
@@ -57,6 +55,8 @@ export async function selectCourse(courseId: number) {
       await db.insert(userProgress).values({
         ...selection,
         userId,
+        userName: user.name ?? FALLBACK_NAME,
+        userImgSrc: user.picture ?? FALLBACK_AVATAR,
       })
     }
 

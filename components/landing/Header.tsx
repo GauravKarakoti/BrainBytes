@@ -1,12 +1,23 @@
+"use client"
+
+import Image from 'next/image'
 import NextLink from 'next/link'
-import { ClerkLoaded, UserButton, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme/toggle'
+import { useUserProfile } from '@/lib/hooks/useUserProfile'
 
 import LogoSVG from '@/public/logo.svg'
 import GithubSVG from '@/public/img/github.svg'
 
 export function Header() {
+  const { authUser, isAuthLoading, profile, isProfileLoading } = useUserProfile()
+
+  const isLoading = isAuthLoading || (authUser && isProfileLoading)
+  const isAuthenticated = !!authUser
+
+  const displayName = profile?.progress?.userName ?? profile?.user.name ?? authUser?.name ?? 'Learner'
+  const displayAvatar = profile?.progress?.userImgSrc ?? profile?.user.picture ?? authUser?.picture
+
   return (
     <header className="relative flex justify-center">
       <div className="z-1 flex w-full items-center justify-between gap-2 px-2 sm:px-8">
@@ -32,16 +43,33 @@ export function Header() {
           <span className="font-display -tracking-widest max-sm:sr-only">BrainBytes</span>
         </NextLink>
         <div className="flex flex-1 items-center justify-end">
-          <ClerkLoaded>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button variant="ghost">Login</Button>
-              </SignInButton>
-            </SignedOut>
-          </ClerkLoaded>
+          {isLoading ? (
+            <Button variant="ghost" disabled>
+              Loading...
+            </Button>
+          ) : isAuthenticated ? (
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" asChild>
+                <NextLink href="/learn">Dashboard</NextLink>
+              </Button>
+              <Button variant="ghost" asChild>
+                <a href="/api/auth/logout">Logout</a>
+              </Button>
+              {displayAvatar ? (
+                <Image
+                  src={displayAvatar}
+                  alt={displayName}
+                  width={36}
+                  height={36}
+                  className="size-9 rounded-full border border-border object-cover"
+                />
+              ) : null}
+            </div>
+          ) : (
+            <Button variant="ghost" asChild>
+              <a href="/api/auth/login">Login</a>
+            </Button>
+          )}
         </div>
       </div>
       <div className="fixed bottom-4 right-4 z-50 sm:hidden">

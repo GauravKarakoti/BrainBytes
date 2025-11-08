@@ -1,6 +1,5 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
-@import './clerk.css';
 @tailwind utilities;
 
 @layer base {

@@ -1,16 +1,18 @@
-import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { Trophy, Target } from 'lucide-react'
 import { QuestGrid } from '@/components/user/quests/QuestGrid'
 import { getUserProgress } from '@/db/queries/userProgress'
 import { getQuests } from '@/actions/quest'
+import { getOptionalUser } from '@/lib/auth0'
 
 export default async function Quests() {
-  const { userId } = await auth()
+  const user = await getOptionalUser()
 
-  if (!userId) {
+  if (!user) {
     redirect('/')
   }
+
+  const userId = user.id
 
   const [userProgress, allQuests] = await Promise.all([
     getUserProgress(userId),

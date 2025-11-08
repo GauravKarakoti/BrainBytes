@@ -1,18 +1,17 @@
 "use server";
 
-import { auth, currentUser } from "@clerk/nextjs/server";
-
 import { stripe } from "@/lib/stripe";
 import { getUserSubscription } from "@/db/queries/userProgress";
+import { requireUser } from "@/lib/auth0";
 
 const returnUrl = process.env.NEXT_PUBLIC_APP_URL + "/shop";
 
 export const createStripeUrl = async () => {
-  const { userId } = await auth();
-  const user = await currentUser();
+  const user = await requireUser();
+  const userId = user.id;
 
-  if (!userId || !user) {
-    throw new Error("Unauthorized");
+  if (!user.email) {
+    throw new Error("User email is required to create a subscription");
   }
 
   const userSubscription = await getUserSubscription();
@@ -29,7 +28,7 @@ export const createStripeUrl = async () => {
   const stripeSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
-    customer_email: user.emailAddresses[0].emailAddress,
+  customer_email: user.email,
     line_items: [
       {
         price_data: {

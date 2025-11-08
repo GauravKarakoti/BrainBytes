@@ -1,19 +1,16 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { eq } from 'drizzle-orm'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
 import { db } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { SHOP_ITEMS, type ShopItem } from '@/config/shop'
+import { requireUser } from '@/lib/auth0'
 
 export async function purchaseWithCurrency(itemId: number) {
-  const { userId } = await auth()
-
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
+  const user = await requireUser()
+  const userId = user.id
 
   const item = SHOP_ITEMS.find((i) => i.id === itemId) as ShopItem | undefined
 

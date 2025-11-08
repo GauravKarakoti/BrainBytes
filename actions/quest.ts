@@ -1,6 +1,5 @@
 'use server'
 import { getLevelFromPoints } from '@/config/levels'
-import { auth } from '@clerk/nextjs/server'
 import { db } from '@/db/drizzle'
 import {
   quests,
@@ -10,6 +9,7 @@ import {
 import { userProgress } from '@/db/schema/userProgress'
 import { eq, and, sql, inArray } from 'drizzle-orm'
 import { revalidateTag } from 'next/cache'
+import { getOptionalUser } from '@/lib/auth0'
 
 export const getQuests = async (userId?: string | null) => {
   if (userId === null) return []
@@ -19,9 +19,9 @@ export const getQuests = async (userId?: string | null) => {
   if (userId) {
     finalUserId = userId
   } else {
-    const { userId: _uid } = await auth()
-    if (!_uid) return [] 
-    finalUserId = _uid
+    const user = await getOptionalUser()
+    if (!user) return []
+    finalUserId = user.id
   }
 
   const data = await db.query.quests.findMany({

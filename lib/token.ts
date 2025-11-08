@@ -1,6 +1,6 @@
 'use server'
 import { getUserProgress } from '@/db/queries/userProgress'
-import { auth } from '@clerk/nextjs/server'
+import { requireUser } from '@/lib/auth0'
 import { ethers } from 'ethers'
 
 const contractAddress = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS
@@ -44,14 +44,13 @@ export const getByteBalance = async (
 }
 
 export async function BYTEBalance() {
-  const { userId } = await auth()
+  const user = await requireUser()
 
-  const userProgress = await getUserProgress(userId)
+  const userProgress = await getUserProgress(user.id)
 
-  let byteBalance = '0.0'
-  if (userProgress!.wallet_address) {
-    byteBalance = await getByteBalance(userProgress!.wallet_address)
+  if (!userProgress?.wallet_address) {
+    return '0.0'
   }
 
-  return byteBalance;
+  return getByteBalance(userProgress.wallet_address)
 }

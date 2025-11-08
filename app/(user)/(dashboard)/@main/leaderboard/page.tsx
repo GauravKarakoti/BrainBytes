@@ -1,12 +1,13 @@
 import { Suspense } from 'react'
-import { auth } from '@clerk/nextjs/server'
 import { Trophy } from 'lucide-react'
 import { LeaderboardList, LeaderboardSkeleton } from '@/components/user/leaderboard/LeaderboardList'
 import { getTopUsers, getUserRank } from '@/db/queries/leaderboard'
 import { getUserProgress } from '@/db/queries/userProgress'
+import { getOptionalUser } from '@/lib/auth0'
 
 export default async function Leaderboard() {
-  const { userId } = await auth()
+  const user = await getOptionalUser()
+  const userId = user?.id ?? null
   
   const [topUsers, userProgress, userRank] = await Promise.all([
     getTopUsers(),
