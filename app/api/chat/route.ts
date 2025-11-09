@@ -1,5 +1,7 @@
+// app/api/chat/route.ts
+
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 
 export const maxDuration = 30;
 
@@ -31,12 +33,18 @@ export async function POST(req: Request) {
   const google = createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_API_KEY,
   });
-
+  console.log("System Prompt:",systemPrompt);
+  console.log("Messages:",convertToModelMessages(messages));
+  console.log("Messages:",convertToModelMessages(messages)[0].content);
   const result = await streamText({
-    model: google('models/gemini-1.5-flash-latest'),
+    // FIX: Use 'gemini-pro' which is compatible with the v1beta API.
+    // The 'gemini-1.5-flash-latest' model isn't found on that endpoint.
+    // Also, remove the 'models/' prefix; the SDK handles that.
+    model: google('gemini-2.5-flash'),
     system: systemPrompt,
-    messages,
+    messages: convertToModelMessages(messages), 
   });
+  console.log("result:",result.toTextStreamResponse())
 
   return result.toTextStreamResponse();
 }
