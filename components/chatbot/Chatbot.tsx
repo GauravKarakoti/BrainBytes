@@ -1,45 +1,84 @@
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
-// --- FIX: Remove 'isTextUIPart' as it's not exported ---
-import { useChat, UIMessage } from '@ai-sdk/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Bot, Send, User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LoadingSVG from '@/public/img/icons/loader.svg';
+import { toast } from 'sonner';
 
-// --- FIX: Define the TextUIPart type locally for our type guard ---
-type TextUIPart = {
-  type: 'text';
-  text: string;
-  // Add other properties if needed, but 'type' and 'text' are essential
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
 };
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
 
-  const { messages, sendMessage, status } = useChat({});
-
-  const isLoading = status === 'submitted' || status === 'streaming';
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
-    sendMessage({ text: input });
-    setInput(''); // Clear input after sending
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+    };
+
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setIsLoading(true);
+    setInput('');
+
+    const apiMessages = newMessages.map((msg) => ({
+      role: msg.role,
+      parts: [{ type: 'text', text: msg.content }],
+    }));
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: apiMessages }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const assistantResponseText = await response.text();
+
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: assistantResponseText,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      toast.error('Failed to get a response from ByteBot.');
+      setMessages(messages);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +114,6 @@ export function Chatbot() {
             ref={chatContainerRef}
             className="flex-1 space-y-4 overflow-y-auto p-4"
           >
-            {/* Welcome message */}
             {messages.length === 0 && !isLoading && (
               <div className="flex items-start gap-3 justify-start">
                 <span className="flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -88,7 +126,7 @@ export function Chatbot() {
               </div>
             )}
 
-            {(messages as UIMessage[]).map((m) => (
+            {messages.map((m) => (
               <div
                 key={m.id}
                 className={cn(
@@ -109,13 +147,7 @@ export function Chatbot() {
                       : 'rounded-bl-none bg-surface-variant text-foreground'
                   )}
                 >
-                  {/* --- FIX: Use an inline type guard in the filter --- */}
-                  {m.parts
-                    .filter(
-                      (part): part is TextUIPart => part.type === 'text'
-                    )
-                    .map((part) => part.text)
-                    .join('')}
+                  {m.content}
                 </div>
                 {m.role === 'user' && (
                   <span className="flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-surface-muted">
@@ -125,7 +157,7 @@ export function Chatbot() {
               </div>
             ))}
 
-            {isLoading && (messages.length === 0 || messages[messages.length - 1]?.role === 'user') && (
+            {isLoading && (
               <div className="flex justify-start gap-3">
                 <span className="flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <Bot className="size-5" />

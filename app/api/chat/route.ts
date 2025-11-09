@@ -32,14 +32,15 @@ Here is the question below:\n
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
-  console.log("Messages:",messages[0].parts[0].text);
+  console.log("Messages:", messages[0].parts[0].text);
 
   const result = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: systemPrompt+messages[0].parts[0].text,
+    contents: systemPrompt + messages[0].parts[0].text,
   });
 
-  console.log("Result:",result.candidates![0].content?.parts![0].text);    
+  const textResult = result.candidates![0].content?.parts![0].text;
+  console.log("Result:", textResult);
 
-  return result.candidates![0].content?.parts![0].text;
+  return new NextResponse(textResult);
 }
