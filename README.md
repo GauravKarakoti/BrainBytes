@@ -67,6 +67,8 @@ To create an engaging, modern, and comprehensive platform for learning programmi
 
 - ****Admin Dashboard**: A separate admin interface built with React-Admin for managing courses, units, lessons, and challenges.
 
+- ****Automated CI/CD Pipelines**: Comprehensive GitHub Actions workflows for continuous integration, ensuring code quality, contract validation, and database schema consistency on every pull request.
+
  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 
 ## 🛠️ Tech Stack
@@ -91,6 +93,8 @@ To create an engaging, modern, and comprehensive platform for learning programmi
 - **Code Execution (PvP)**: [Judge0](https://judge0.com/)
 
 - **Deployment**: [Vercel](https://vercel.com/)
+
+- **CI/CD**: [GitHub Actions](https://github.com/features/actions)
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 
@@ -164,6 +168,60 @@ After running, copy the output contract address to `NEXT_PUBLIC_BYTE_TOKEN_ADDRE
 pnpm dev
 ```
 The application should now be running at http://localhost:3000.
+
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
+
+## 🔄 CI/CD Pipelines
+
+We use GitHub Actions to automate quality checks and ensure code reliability. The following workflows are triggered on every pull request:
+
+### 🌐 Web Application CI
+**File**: `.github/workflows/web-app-ci.yml`
+
+Runs on every pull request to ensure the Next.js application is error-free before merging.
+- **Linting**: Validates code style with ESLint
+- **Type Checking**: Performs TypeScript type checking with `pnpm tsc --noEmit`
+- **Build Verification**: Ensures the application builds successfully with `pnpm build`
+
+Triggered on: Pull requests and pushes to `main` and `develop` branches
+
+### 🔗 Smart Contract CI
+**File**: `.github/workflows/smart-contract-ci.yml`
+
+Validates Solidity smart contracts (ByteToken.sol) and prevents breaking changes.
+- **Compilation**: Compiles contracts with Hardhat
+- **Unit Tests**: Runs contract tests with `pnpm hardhat test`
+- **Coverage Report**: Generates test coverage metrics (non-blocking)
+
+Triggered on: Changes to `contracts/`, `hardhat.config.ts`, or `test/` directories
+
+### 🗄️ Database Schema Verification
+**File**: `.github/workflows/database-schema-ci.yml`
+
+Prevents "schema drift" by validating Drizzle ORM schema consistency and migration integrity.
+- **Schema Validation**: Checks schema consistency with `pnpm drizzle-kit check`
+- **Migration Generation**: Generates migrations from schema changes
+- **Migration Testing**: Verifies migrations can be applied to a test database
+- **PostgreSQL Integration**: Uses a test PostgreSQL 16 instance
+
+Triggered on: Changes to `db/schema/`, `drizzle.config.ts`, or `drizzle/` migration files
+
+### Running Workflows Locally
+
+To test CI/CD workflows locally before pushing:
+
+```bash
+# Install act to run GitHub Actions locally
+brew install act
+
+# Run all workflows
+act
+
+# Run a specific workflow
+act -j compile-and-test
+```
+
+For more information about the CI/CD setup, refer to the [GitHub Actions documentation](https://docs.github.com/en/actions).
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
  
