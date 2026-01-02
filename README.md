@@ -53,6 +53,7 @@ A gamified, interactive platform designed to make learning Data Structures and A
 ## 📋 Table of Contents
 - [🎯 Vision](#vision)
 - [✨ Features](#features-that-shine)
+- [💳 Premium Subscriptions](#premium-subscription-system)
 - [🏗️ Architecture](#architecture)
 - [🛠️ Tech Stack](#tech-stack)
 - [📚 Learning Paths](#learning-paths)
@@ -87,10 +88,17 @@ BrainBytes is packed with powerful features to enhance your learning experience:
 - **Blockchain Rewards**: Integrated with a custom ERC20 "BYTE" token on the Sepolia testnet. Users can mint tokens for completing challenges and spend them in the shop.
 - **Wallet Integration**: Connect MetaMask or other wallets using Wagmi to manage and spend BYTE tokens.
 - **In-App Shop**: Users can spend their collected gems or BYTE tokens on items like heart refills or vouchers.
+- **Crypto Subscriptions**: Pay for premium features with ETH or BYTE tokens via Web3 wallet.
 
 ### 🌐 Community & Support
 - **Community Forum**: A built-in forum for users to ask questions, share solutions, and interact with the community.
 - **Real-time Chat**: Engage with community members through real-time messaging powered by Pusher.
+
+### 💳 Premium Subscription System
+- **Multiple Tiers**: Free, Pro, Premium, and Elite subscription plans with increasing benefits.
+- **Flexible Payments**: Subscribe via Stripe (credit card) or Cryptocurrency (ETH/BYTE tokens).
+- **Premium Benefits**: Unlock unlimited hearts, exclusive courses, live mentoring, code reviews, and more.
+- **Easy Management**: Upgrade, downgrade, pause, or cancel subscriptions anytime.
 
 ### 🔐 Platform Features
 - **Authentication**: Secure user authentication and management handled by Auth0.
@@ -100,7 +108,84 @@ BrainBytes is packed with powerful features to enhance your learning experience:
 
  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 
-## 🏗️ Architecture
+## 💳 Premium Subscription System
+
+BrainBytes offers flexible subscription plans to support different learning needs:
+
+### Subscription Tiers
+
+| Plan | Price | Hearts | PvP Matches | Mentoring | Features |
+|------|-------|--------|-------------|-----------|----------|
+| **Free** | Free | 5/day | 3/day | ❌ | Basic access |
+| **Pro** 💜 | $9.99/mo | ∞ | ∞ | ❌ | All courses + Ad-free |
+| **Premium** 💎 | $19.99/mo | ∞ | ∞ | 1/mo | Live mentoring + Code reviews |
+| **Elite** 👑 | $49.99/mo | ∞ | ∞ | ∞ | VIP support + Exclusive events |
+
+### Payment Options
+
+We support two powerful payment methods:
+
+#### 💳 Stripe (Credit Card)
+- Visa, Mastercard, American Express
+- Monthly and yearly billing
+- Automatic renewal
+- Easy upgrade/downgrade via billing portal
+- Secure PCI-compliant processing
+
+#### 🪙 Cryptocurrency
+- Pay with ETH or BYTE tokens
+- Sepolia testnet integration
+- MetaMask wallet support
+- Low transaction fees
+- Transparent on-chain verification
+
+### Key Benefits
+
+✅ **Pro Plan Benefits**
+- Unlimited hearts and challenges
+- Ad-free experience
+- Advanced progress analytics
+- Priority community support
+
+✅ **Premium Plan Benefits** (Pro + )
+- Live 1-on-1 mentoring sessions (1/month)
+- Monthly code reviews (4 sessions)
+- Personalized learning path
+- AI-powered analytics
+
+✅ **Elite Plan Benefits** (Premium + )
+- Unlimited mentoring and code reviews
+- 24/7 dedicated support
+- VIP tournament access
+- Exclusive advanced courses
+- Extra BYTE token rewards
+
+### Subscription Management
+
+Users can easily manage their subscription:
+- **Upgrade/Downgrade**: Change plans anytime with instant access
+- **Pause**: Temporarily pause for later without losing progress
+- **Cancel**: Cancel anytime, no questions asked
+- **Renew**: Automatic renewal with email reminders before expiration
+
+### Usage
+
+```typescript
+// Check if user has premium subscription
+import { isPremiumUser, hasFeature } from "@/lib/premium";
+
+const isPremium = await isPremiumUser(userId);
+const canMentor = await hasFeature(userId, "Live Mentoring");
+
+// Lock features behind premium
+<PremiumFeatureLock feature="Unlimited Hearts">
+  <PremiumContent />
+</PremiumFeatureLock>
+```
+
+**For detailed documentation, see [Premium Subscription Docs](./docs/PREMIUM_SUBSCRIPTION.md)**
+
+ <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 
 BrainBytes follows a modern, scalable architecture:
 
