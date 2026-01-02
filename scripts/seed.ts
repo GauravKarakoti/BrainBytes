@@ -1,0 +1,967 @@
+import { drizzle } from 'drizzle-orm/neon-http'
+import { neon } from '@neondatabase/serverless'
+
+import * as schema from '@/db/schema'
+import { QUESTS } from '@/config/quests' 
+
+const sql = neon(process.env.DATABASE_URL!)
+
+const db = drizzle(sql, { schema, logger: true })
+
+const main = async () => {
+  try {
+    console.log('🚧 [DB]: Seeding database...')
+
+    await db.delete(schema.challengeProgress)
+    await db.delete(schema.challengeOptions)
+    await db.delete(schema.challenges)
+    await db.delete(schema.lessons)
+    await db.delete(schema.units)
+    await db.delete(schema.userQuestProgress)
+    await db.delete(schema.quests)
+    await db.delete(schema.userProgress)
+    await db.delete(schema.courses)
+
+    await db.insert(schema.courses).values([
+      {
+        id: 1,
+        title: 'Python',
+        altCode: 'py',
+      },
+      {
+        id: 2,
+        title: 'JavaScript',
+        altCode: 'js',
+      },
+      {
+        id: 3,
+        title: 'C++',
+        altCode: 'cpp',
+      },
+      {
+        id: 4,
+        title: 'Java',
+        altCode: 'java',
+      },
+      
+    ])
+
+    await db.insert(schema.units).values([
+      // Python Units
+      {
+        id: 1,
+        title: 'Unit 1: Arrays & Strings',
+        description: 'Master fundamental data structures: arrays and strings.',
+        courseId: 1,
+        order: 1,
+      },
+      {
+        id: 2,
+        title: 'Unit 2: Linked Lists',
+        description: 'Learn about linked lists and their operations.',
+        courseId: 1,
+        order: 2,
+      },
+      {
+        id: 3,
+        title: 'Unit 3: Stacks & Queues',
+        description: 'Understand LIFO and FIFO data structures.',
+        courseId: 1,
+        order: 3,
+      },
+      
+      // JavaScript Units
+      {
+        id: 4,
+        title: 'Unit 1: JavaScript Basics',
+        description: 'Learn the fundamentals of JavaScript programming.',
+        courseId: 2,
+        order: 1,
+      },
+      {
+        id: 5,
+        title: 'Unit 2: Async JavaScript',
+        description: 'Master asynchronous programming in JavaScript.',
+        courseId: 2,
+        order: 2,
+      },
+      // C++ Units
+      {
+        id: 6,
+        title: 'Unit 1: C++ Fundamentals',
+        description: 'Learn C++ basics and memory management.',
+        courseId: 3,
+        order: 1,
+      },
+      {
+        id: 7,
+        title: 'Unit 2: STL & Algorithms',
+        description: 'Master the Standard Template Library.',
+        courseId: 3,
+        order: 2,
+      },
+      // Java Units
+      {
+        id: 8,
+        title: 'Unit 1: Java Basics',
+        description: 'Learn Java fundamentals and OOP concepts.',
+        courseId: 4,
+        order: 1,
+      },
+      {
+        id: 9,
+        title: 'Unit 2: Collections Framework',
+        description: 'Master Java collections and data structures.',
+        courseId: 4,
+        order: 2,
+      },
+    ])
+
+    await db.insert(schema.lessons).values([
+      // Python - Unit 1
+      {
+        id: 1,
+        unitId: 1,
+        order: 1,
+        title: 'Array Basics',
+      },
+      {
+        id: 2,
+        unitId: 1,
+        order: 2,
+        title: 'Two Pointers',
+      },
+      {
+        id: 3,
+        unitId: 1,
+        order: 3,
+        title: 'Sliding Window',
+      },
+      // Python - Unit 2
+      {
+        id: 4,
+        unitId: 2,
+        order: 1,
+        title: 'Singly Linked Lists',
+      },
+      {
+        id: 5,
+        unitId: 2,
+        order: 2,
+        title: 'Doubly Linked Lists',
+      },
+      {
+        id: 6,
+        unitId: 2,
+        order: 3,
+        title: 'Linked List Operations',
+      },
+      // Python - Unit 3
+      {
+        id: 7,
+        unitId: 3,
+        order: 1,
+        title: 'Stack Implementation',
+      },
+      {
+        id: 8,
+        unitId: 3,
+        order: 2,
+        title: 'Queue Implementation',
+      },
+      // JavaScript - Unit 1
+      {
+        id: 9,
+        unitId: 4,
+        order: 1,
+        title: 'Variables & Data Types',
+      },
+      {
+        id: 10,
+        unitId: 4,
+        order: 2,
+        title: 'Functions & Scope',
+      },
+      {
+        id: 11,
+        unitId: 4,
+        order: 3,
+        title: 'Objects & Arrays',
+      },
+      // JavaScript - Unit 2
+      {
+        id: 12,
+        unitId: 5,
+        order: 1,
+        title: 'Promises',
+      },
+      {
+        id: 13,
+        unitId: 5,
+        order: 2,
+        title: 'Async/Await',
+      },
+      {
+        id: 14,
+        unitId: 5,
+        order: 3,
+        title: 'Event Loop',
+      },
+      // C++ - Unit 1
+      {
+        id: 15,
+        unitId: 6,
+        order: 1,
+        title: 'Pointers & References',
+      },
+      {
+        id: 16,
+        unitId: 6,
+        order: 2,
+        title: 'Memory Management',
+      },
+      {
+        id: 17,
+        unitId: 6,
+        order: 3,
+        title: 'Classes & Objects',
+      },
+      // C++ - Unit 2
+      {
+        id: 18,
+        unitId: 7,
+        order: 1,
+        title: 'Vectors & Arrays',
+      },
+      {
+        id: 19,
+        unitId: 7,
+        order: 2,
+        title: 'Maps & Sets',
+      },
+      {
+        id: 20,
+        unitId: 7,
+        order: 3,
+        title: 'Iterators',
+      },
+      // Java - Unit 1
+      {
+        id: 21,
+        unitId: 8,
+        order: 1,
+        title: 'Classes & Inheritance',
+      },
+      {
+        id: 22,
+        unitId: 8,
+        order: 2,
+        title: 'Interfaces',
+      },
+      {
+        id: 23,
+        unitId: 8,
+        order: 3,
+        title: 'Exception Handling',
+      },
+      // Java - Unit 2
+      {
+        id: 24,
+        unitId: 9,
+        order: 1,
+        title: 'ArrayList & LinkedList',
+      },
+      {
+        id: 25,
+        unitId: 9,
+        order: 2,
+        title: 'HashMap & TreeMap',
+      },
+      {
+        id: 26,
+        unitId: 9,
+        order: 3,
+        title: 'Streams & Lambda',
+      },
+    ])
+
+    const reverseStringTestCases = [
+      { input: 'hello', output: 'olleh' },
+      { input: 'world', output: 'dlrow' },
+      { input: 'BrainBytes', output: 'setyBniarB' },
+      { input: 'a', output: 'a' },
+    ]
+
+    const pythonStub = `def reverse_string(s):
+  # Your code here
+  return ""
+
+# Read input from stdin
+try:
+  s_input = input()
+  # Call the function and print the result
+  print(reverse_string(s_input))
+except EOFError:
+  pass
+`
+
+    const jsStub = `function reverseString(s) {
+  // Your code here
+  return "";
+}
+
+// Read input from stdin
+const readline = require('readline');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+let inputData = '';
+rl.on('line', function(line){
+  inputData += line;
+});
+
+rl.on('close', function() {
+  // Call the function and print the result
+  console.log(reverseString(inputData));
+});
+`
+
+    const javaStub = `import java.util.Scanner;
+
+class Solution {
+    public String reverseString(String s) {
+        // Your code here
+        return "";
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String s = "";
+        if (sc.hasNextLine()) {
+            s = sc.nextLine();
+        }
+        Solution sol = new Solution();
+        System.out.println(sol.reverseString(s));
+        sc.close();
+    }
+}`
+
+    const cppStub = `#include <iostream>
+#include <string>
+#include <algorithm>
+
+std::string reverseString(std::string s) {
+  // Your code here
+  return "";
+}
+
+int main() {
+    std::string s;
+    std::getline(std::cin, s);
+    std::cout << reverseString(s) << std::endl;
+    return 0;
+}`
+
+    await db.insert(schema.challenges).values([
+      // Python - Lesson 1: Array Basics
+      {
+        id: 1,
+        lessonId: 1,
+        type: 'SELECT',
+        order: 1,
+        question: 'What is the time complexity of accessing an element in an array by index?',
+      },
+      {
+        id: 2,
+        lessonId: 1,
+        type: 'SELECT',
+        order: 2,
+        question: 'Which operation on an array has O(n) time complexity?',
+      },
+      // Python - Lesson 2: Two Pointers
+      {
+        id: 3,
+        lessonId: 2,
+        type: 'SELECT',
+        order: 1,
+        question: 'What is the two-pointer technique primarily used for?',
+      },
+      {
+        id: 4,
+        lessonId: 2,
+        type: 'SELECT',
+        order: 2,
+        question: 'In which scenario is the two-pointer technique most efficient?',
+      },
+      // JavaScript - Lesson 9: Variables & Data Types
+      {
+        id: 5,
+        lessonId: 9,
+        type: 'SELECT',
+        order: 1,
+        question: 'Which keyword is used to declare a block-scoped variable in JavaScript?',
+      },
+      {
+        id: 6,
+        lessonId: 9,
+        type: 'SELECT',
+        order: 2,
+        question: 'What is the result of typeof null in JavaScript?',
+      },
+      // JavaScript - Lesson 10: Functions & Scope
+      {
+        id: 7,
+        lessonId: 10,
+        type: 'SELECT',
+        order: 1,
+        question: 'What is a closure in JavaScript?',
+      },
+      {
+        id: 8,
+        lessonId: 10,
+        type: 'SELECT',
+        order: 2,
+        question: 'Which of these correctly defines an arrow function?',
+      },
+      // C++ - Lesson 15: Pointers & References
+      {
+        id: 9,
+        lessonId: 15,
+        type: 'SELECT',
+        order: 1,
+        question: 'What does the * operator do when used with a pointer?',
+      },
+      {
+        id: 10,
+        lessonId: 15,
+        type: 'SELECT',
+        order: 2,
+        question: 'What is the difference between a pointer and a reference in C++?',
+      },
+      // C++ - Lesson 16: Memory Management
+      {
+        id: 11,
+        lessonId: 16,
+        type: 'SELECT',
+        order: 1,
+        question: 'Which operator is used to allocate memory dynamically in C++?',
+      },
+      {
+        id: 12,
+        lessonId: 16,
+        type: 'SELECT',
+        order: 2,
+        question: 'What happens if you delete a pointer twice?',
+      },
+      // Java - Lesson 21: Classes & Inheritance
+      {
+        id: 13,
+        lessonId: 21,
+        type: 'SELECT',
+        order: 1,
+        question: 'Which keyword is used to inherit a class in Java?',
+      },
+      {
+        id: 14,
+        lessonId: 21,
+        type: 'SELECT',
+        order: 2,
+        question: 'Can a class in Java inherit from multiple classes?',
+      },
+      // Java - Lesson 22: Interfaces
+      {
+        id: 15,
+        lessonId: 22,
+        type: 'SELECT',
+        order: 1,
+        question: 'What keyword is used to implement an interface in Java?',
+      },
+      {
+        id: 16,
+        lessonId: 22,
+        type: 'SELECT',
+        order: 2,
+        question: 'Can an interface have constructors?',
+      },
+      // CODE Challenges
+      {
+        id: 17,
+        lessonId: 23,
+        type: 'CODE',
+        order: 1,
+        question: 'Python',
+        problemDescription: 'Given an input string, write a Python function that returns the string reversed. For example, if the input is "hello", the output should be "olleh".',
+        stubCodePy: pythonStub,
+        stubCodeJs: jsStub,
+        stubCodeJava: javaStub,
+        stubCodeCpp: cppStub,
+        testCases: reverseStringTestCases,
+      },
+      {
+        id: 18,
+        lessonId: 24,
+        type: 'CODE',
+        order: 1,
+        question: 'C++',
+        problemDescription: 'Given an input string, write a C++ function that returns the string reversed. For example, if the input is "hello", the output should be "olleh".', 
+        stubCodePy: pythonStub,
+        stubCodeJs: jsStub,
+        stubCodeJava: javaStub,
+        stubCodeCpp: cppStub,
+        testCases: reverseStringTestCases,
+      },
+        {
+        id: 19,
+        lessonId: 25,
+        type: 'CODE',
+        order: 1,
+        question: 'Java',
+        problemDescription: 'Given an input string, write a Java function that returns the string reversed. For example, if the input is "hello", the output should be "olleh".',
+        stubCodePy: pythonStub,
+        stubCodeJs: jsStub,
+        stubCodeJava: javaStub,
+        stubCodeCpp: cppStub,
+        testCases: reverseStringTestCases,
+      },
+      {
+        id: 20,
+        lessonId: 26,
+        type: 'CODE',
+        order: 1,
+        question: 'JavaScript',
+        problemDescription: 'Given an input string, write a JavaScript function that returns the string reversed. For example, if the input is "hello", the output should be "olleh".',
+        stubCodePy: pythonStub,
+        stubCodeJs: jsStub,
+        stubCodeJava: javaStub,
+        stubCodeCpp: cppStub,
+        testCases: reverseStringTestCases,
+      },
+    ])
+
+    await db.insert(schema.challengeOptions).values([
+      // Challenge 1: Array access complexity
+      {
+        id: 1,
+        challengeId: 1,
+        option: 'O(1)',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 2,
+        challengeId: 1,
+        option: 'O(n)',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 3,
+        challengeId: 1,
+        option: 'O(log n)',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 2: Array O(n) operation
+      {
+        id: 4,
+        challengeId: 2,
+        option: 'Inserting at the end',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 5,
+        challengeId: 2,
+        option: 'Finding an element',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 6,
+        challengeId: 2,
+        option: 'Accessing by index',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 3: Two-pointer technique
+      {
+        id: 7,
+        challengeId: 3,
+        option: 'Optimizing space complexity',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 8,
+        challengeId: 3,
+        option: 'Sorting arrays',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 9,
+        challengeId: 3,
+        option: 'Hashing elements',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 4: Two-pointer efficiency
+      {
+        id: 10,
+        challengeId: 4,
+        option: 'Searching in sorted arrays',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 11,
+        challengeId: 4,
+        option: 'Random access',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 12,
+        challengeId: 4,
+        option: 'Hash table lookups',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 5: JS let keyword
+      {
+        id: 13,
+        challengeId: 5,
+        option: 'let',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 14,
+        challengeId: 5,
+        option: 'var',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 15,
+        challengeId: 5,
+        option: 'global',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 6: typeof null
+      {
+        id: 16,
+        challengeId: 6,
+        option: 'object',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 17,
+        challengeId: 6,
+        option: 'null',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 18,
+        challengeId: 6,
+        option: 'undefined',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 7: Closure
+      {
+        id: 19,
+        challengeId: 7,
+        option: 'A function with access to outer scope',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 20,
+        challengeId: 7,
+        option: 'A closed function',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 21,
+        challengeId: 7,
+        option: 'A private function',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 8: Arrow function
+      {
+        id: 22,
+        challengeId: 8,
+        option: '(x) => x * 2',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 23,
+        challengeId: 8,
+        option: 'function => (x)',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 24,
+        challengeId: 8,
+        option: 'x -> x * 2',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 9: Pointer dereference
+      {
+        id: 25,
+        challengeId: 9,
+        option: 'Dereferences the pointer',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 26,
+        challengeId: 9,
+        option: 'Gets the address',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 27,
+        challengeId: 9,
+        option: 'Multiplies the value',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 10: Pointer vs reference
+      {
+        id: 28,
+        challengeId: 10,
+        option: 'Pointers can be null, references cannot',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 29,
+        challengeId: 10,
+        option: 'They are the same',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 30,
+        challengeId: 10,
+        option: 'References use * operator',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 11: Dynamic memory allocation
+      {
+        id: 31,
+        challengeId: 11,
+        option: 'new',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 32,
+        challengeId: 11,
+        option: 'malloc',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 33,
+        challengeId: 11,
+        option: 'alloc',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 12: Double delete
+      {
+        id: 34,
+        challengeId: 12,
+        option: 'Undefined behavior/crash',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 35,
+        challengeId: 12,
+        option: 'Nothing happens',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 36,
+        challengeId: 12,
+        option: 'Frees memory twice',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 13: Java inheritance
+      {
+        id: 37,
+        challengeId: 13,
+        option: 'extends',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 38,
+        challengeId: 13,
+        option: 'implements',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 39,
+        challengeId: 13,
+        option: 'inherits',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 14: Multiple inheritance
+      {
+        id: 40,
+        challengeId: 14,
+        option: 'No',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 41,
+        challengeId: 14,
+        option: 'Yes',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 42,
+        challengeId: 14,
+        option: 'Only with interfaces',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 15: Interface implementation
+      {
+        id: 43,
+        challengeId: 15,
+        option: 'implements',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 44,
+        challengeId: 15,
+        option: 'extends',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 45,
+        challengeId: 15,
+        option: 'uses',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      // Challenge 16: Interface constructors
+      {
+        id: 46,
+        challengeId: 16,
+        option: 'No',
+        correct: true,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 47,
+        challengeId: 16,
+        option: 'Yes',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+      {
+        id: 48,
+        challengeId: 16,
+        option: 'Only private ones',
+        correct: false,
+        imageSrc: null,
+        audioSrc: null,
+      },
+    ])
+
+    console.log('Seeding quests...')
+    const questsData = QUESTS.map((quest) => ({
+      title: quest.title,
+      description: quest.description,
+      icon: quest.icon,
+      target: quest.target,
+      rewardPoints: quest.reward.points,
+      rewardGems: quest.reward.gems,
+      type: quest.type,
+    }))
+
+    await db.insert(schema.quests).values(questsData)
+
+    console.log('✅ [DB]: Seeded 100%!')
+  } catch (error) {
+    console.error(error)
+    throw new Error('❌ [DB]: Failed to seed database.')
+  }
+}
+
+main()

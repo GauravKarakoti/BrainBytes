@@ -1,0 +1,172 @@
+name: Performance & Deployment Readiness
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  performance-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build for production
+        run: pnpm build
+      
+      - name: Analyze bundle size
+        run: |
+          echo "=== Build Output Analysis ===" >> bundle-report.md
+          echo "" >> bundle-report.md
+          echo "**Build Directory Size:**" >> bundle-report.md
+          du -sh .next/ >> bundle-report.md
+          echo "" >> bundle-report.md
+          echo "**Static Files:**" >> bundle-report.md
+          du -sh .next/static/ >> bundle-report.md 2>/dev/null || echo "Static directory not found" >> bundle-report.md
+          echo "" >> bundle-report.md
+          echo "**Public Directory:**" >> bundle-report.md
+          du -sh public/ >> bundle-report.md 2>/dev/null || echo "Public directory not found" >> bundle-report.md
+      
+      - name: Comment bundle size
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('bundle-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📦 **Bundle Analysis**\n\n${report}`
+            });
+        continue-on-error: true
+      
+      - name: Upload bundle report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-report-${{ github.sha }}
+          path: bundle-report.md
+          retention-days: 7
+  
+  deployment-readiness:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Verify environment variables
+        run: |
+          echo "Checking for required env variables in env templates..."
+          if [ -f ".env.example" ]; then
+            echo "✅ .env.example found"
+          else
+            echo "⚠️ .env.example not found - consider adding it for deployment guidance"
+          fi
+      
+      - name: Check deployment files
+        run: |
+          echo "=== Deployment Configuration Check ===" 
+          echo "Checking for deployment configs..."
+          [ -f "vercel.json" ] && echo "✅ vercel.json exists" || echo "⚠️ vercel.json not found"
+          [ -f "next.config.mjs" ] && echo "✅ next.config.mjs exists" || echo "⚠️ next.config.mjs not found"
+          [ -f "package.json" ] && echo "✅ package.json exists" || echo "⚠️ package.json not found"
+          [ -f "tsconfig.json" ] && echo "✅ tsconfig.json exists" || echo "⚠️ tsconfig.json not found"
+      
+      - name: Test build reproducibility
+        run: |
+          echo "Build 1..."
+          pnpm build
+          BUILD_1_HASH=$(find .next -type f -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+          echo "Build hash: $BUILD_1_HASH"
+          rm -rf .next
+          
+          echo "Build 2..."
+          pnpm build
+          BUILD_2_HASH=$(find .next -type f -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+          echo "Build hash: $BUILD_2_HASH"
+          
+          if [ "$BUILD_1_HASH" = "$BUILD_2_HASH" ]; then
+            echo "✅ Builds are reproducible"
+          else
+            echo "⚠️ Builds differ - may affect caching"
+          fi
+        continue-on-error: true
+      
+      - name: Verify required scripts
+        run: |
+          echo "Checking package.json scripts..."
+          pnpm run build --help > /dev/null && echo "✅ build script" || echo "⚠️ build script"
+          pnpm run lint --help > /dev/null 2>&1 && echo "✅ lint script" || echo "⚠️ lint script"
+          pnpm run dev --help > /dev/null 2>&1 && echo "✅ dev script" || echo "⚠️ dev script"
+        continue-on-error: true
+  
+  security-headers:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check for security configuration
+        run: |
+          echo "=== Security Configuration Check ===" 
+          [ -f "middleware.ts" ] && echo "✅ Middleware exists (for security headers)" || echo "⚠️ middleware.ts not found"
+          [ -f "next.config.mjs" ] && grep -q "headers" next.config.mjs && echo "✅ Custom headers configured" || echo "⚠️ No custom headers found in next.config"
+          echo "Content Security Policy configuration:"
+          grep -r "Content-Security-Policy" . --include="*.ts" --include="*.tsx" --include="*.js" || echo "⚠️ CSP not found in codebase"
+        continue-on-error: true
+      
+      - name: Verify environment safety
+        run: |
+          echo "Checking for hardcoded secrets..."
+          if grep -r "PRIVATE_KEY\|PASSWORD\|SECRET" . --include="*.ts" --include="*.tsx" --include="*.js" | grep -v node_modules | grep -v ".next" | grep "=" | grep -v "process.env" | grep -v "//" ; then
+            echo "⚠️ Potential hardcoded secrets detected"
+            exit 1
+          else
+            echo "✅ No obvious hardcoded secrets found"
+          fi
+        continue-on-error: true

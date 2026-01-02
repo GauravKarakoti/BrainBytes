@@ -1,0 +1,139 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 32 56% 95%;
+    --foreground: 248 24% 22%;
+    --surface: 30 44% 93%;
+    --surface-variant: 26 32% 88%;
+    --surface-muted: 25 30% 84%;
+    --surface-emphasis: 249 28% 22%;
+    --surface-dim: 248 27% 26%;
+    --card: 30 44% 93%;
+    --card-foreground: 248 24% 22%;
+    --popover: 30 44% 93%;
+    --popover-foreground: 248 24% 22%;
+    --primary: 343 76% 68%;
+    --primary-foreground: 259 46% 14%;
+    --primary-depth: 343 58% 52%;
+    --primary-light: 343 70% 78%;
+    --primary-dark: 343 42% 38%;
+    --secondary: 189 43% 73%;
+    --secondary-foreground: 247 36% 16%;
+    --secondary-depth: 189 30% 48%;
+    --muted: 26 44% 92%;
+    --muted-foreground: 248 15% 38%;
+    --accent: 35 87% 72%;
+    --accent-foreground: 258 40% 16%;
+    --highlight: 35 87% 72%;
+    --highlight-foreground: 247 36% 16%;
+    --highlight-depth: 26 69% 56%;
+    --super: 267 53% 75%;
+    --super-foreground: 258 40% 16%;
+    --super-depth: 268 45% 60%;
+    --destructive: 355 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-depth: 355 65% 40%;
+    --disabled: 29 26% 82%;
+    --disabled-foreground: 248 12% 52%;
+    --loading: 189 43% 73%;
+    --border: 28 26% 78%;
+    --outline: 255 18% 45%;
+    --outline-variant: 26 18% 74%;
+    --input: 28 26% 78%;
+    --ring: 343 76% 68%;
+    --shadow-color: 266 44% 14%;
+    --radius: 1.75rem;
+  }
+
+  .dark {
+    --background: 249 22% 12%;
+    --foreground: 245 47% 91%;
+    --surface: 247 23% 16%;
+    --surface-variant: 248 23% 22%;
+    --surface-muted: 249 20% 26%;
+    --surface-emphasis: 252 44% 92%;
+    --surface-dim: 249 24% 16%;
+    --card: 247 23% 16%;
+    --card-foreground: 245 47% 91%;
+    --popover: 247 23% 18%;
+    --popover-foreground: 245 47% 91%;
+    --primary: 343 70% 72%;
+    --primary-foreground: 256 35% 12%;
+    --primary-depth: 343 62% 62%;
+    --primary-light: 343 67% 78%;
+    --primary-dark: 343 45% 48%;
+    --secondary: 189 38% 62%;
+    --secondary-foreground: 248 47% 94%;
+    --secondary-depth: 189 34% 48%;
+    --muted: 248 17% 35%;
+    --muted-foreground: 245 22% 70%;
+    --accent: 35 74% 60%;
+    --accent-foreground: 249 44% 96%;
+    --highlight: 35 74% 60%;
+    --highlight-foreground: 249 44% 96%;
+    --highlight-depth: 25 65% 48%;
+    --super: 267 53% 68%;
+    --super-foreground: 252 44% 96%;
+    --super-depth: 267 44% 54%;
+    --destructive: 355 65% 62%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-depth: 355 58% 46%;
+    --disabled: 250 12% 26%;
+    --disabled-foreground: 248 12% 52%;
+    --loading: 189 38% 32%;
+    --border: 248 24% 32%;
+    --outline: 248 20% 55%;
+    --outline-variant: 247 18% 40%;
+    --input: 247 24% 32%;
+    --ring: 343 70% 72%;
+    --shadow-color: 258 54% 6%;
+  }
+}
+
+@layer base {
+  html,
+  body,
+  :root {
+    @apply h-full;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image: radial-gradient(hsla(var(--primary) / 0.12) 1px, transparent 0),
+      radial-gradient(hsla(var(--secondary) / 0.12) 1px, transparent 0);
+    background-size: 36px 36px;
+    background-position: -8px -8px, 10px 12px;
+  }
+}
+
+@layer components {
+  .heading-section {
+    @apply text-balance px-4 py-6 text-center font-display text-3xl font-semibold leading-snug tracking-tight text-surface-emphasis sm:text-4xl md:text-5xl;
+  }
+  .focus-visible {
+    @apply ring-offset-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+}
+
+@layer utilities {
+  .elevation-1 {
+    box-shadow: 0 1px 2px hsla(var(--shadow-color) / 0.12),
+      0 3px 8px hsla(var(--shadow-color) / 0.1);
+  }
+  .elevation-2 {
+    box-shadow: 0 4px 12px hsla(var(--shadow-color) / 0.18),
+      0 12px 32px hsla(var(--shadow-color) / 0.14);
+  }
+  .elevation-3 {
+    box-shadow: 0 8px 20px hsla(var(--shadow-color) / 0.22),
+      0 20px 46px hsla(var(--shadow-color) / 0.18);
+  }
+  .paused {
+    animation-play-state: paused;
+  }
+}

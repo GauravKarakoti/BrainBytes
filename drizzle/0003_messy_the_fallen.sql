@@ -1,0 +1,1 @@
+ALTER TABLE "user_progress" ADD COLUMN "level" integer DEFAULT 0 NOT NULL;
