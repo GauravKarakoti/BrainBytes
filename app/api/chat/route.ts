@@ -71,22 +71,22 @@ function extractTextFromMessage(first: any): string | undefined {
 function isValidMessage(first: any): boolean {
   if (!first || typeof first !== 'object') return false
 
-  if (Array.isArray(first.parts) && first.parts.some((p: any) => typeof p?.text === 'string' && p.text.trim())) return true
+function isValidMessage(message: any): boolean {
+  if (!message || typeof message !== 'object') return false
 
-  if (typeof first.content === 'string' && first.content.trim()) return true
+  if (Array.isArray(message.parts) && message.parts.some((p: any) => typeof p?.text === 'string' && p.text.trim())) return true
+
+  if (typeof message.content === 'string' && message.content.trim()) return true
 
   if (
-    Array.isArray(first.content) &&
-    first.content.some(
-      (c: any) =>
-        (typeof c === 'string' && c.trim()) ||
-        (typeof c?.text === 'string' && c.text.trim()) ||
-        (Array.isArray(c?.parts) && c.parts.some((pp: any) => typeof pp?.text === 'string' && pp.text.trim()))
+    Array.isArray(message.content) &&
+    message.content.some((c: any) =>
+      typeof c === 'string' || typeof c?.text === 'string' || (Array.isArray(c?.parts) && c.parts.some((pp: any) => typeof pp?.text === 'string'))
     )
   )
     return true
 
-  if (typeof first.text === 'string' && first.text.trim()) return true
+  if (typeof message.text === 'string' && message.text.trim()) return true
 
   return false
 }
