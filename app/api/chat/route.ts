@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth0";
 
 const ai = new GoogleGenAI({});
 
@@ -31,6 +32,10 @@ Here is the question below:\n
 `;
 
 export async function POST(req: Request) {
+  // Require authentication before processing chat requests
+  // This prevents unauthorized API usage and enables rate limiting per user
+  const user = await requireUser()
+
   const { messages } = await req.json();
   console.log("Messages:", messages[0].parts[0].text);
 
