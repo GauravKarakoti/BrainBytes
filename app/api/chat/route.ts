@@ -1,10 +1,27 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth0";
+import { z } from "zod";
+import { checkRateLimit, getUserTier } from "@/lib/rate-limiter";
 
 const ai = new GoogleGenAI({});
 
 export const maxDuration = 30;
+
+// Validation schema for chat message request
+const ChatMessageSchema = z.object({
+  parts: z.array(
+    z.object({
+      text: z.string().min(1, "Message text cannot be empty"),
+    })
+  ).min(1, "Message must have at least one part"),
+});
+
+const ChatRequestSchema = z.object({
+  messages: z.array(ChatMessageSchema).min(1, "Messages array cannot be empty"),
+});
+
+type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
 const systemPrompt = `
 You are a helpful assistant for "BrainBytes", a gamified, interactive platform for learning Data Structures and Algorithms (DSA).
@@ -32,20 +49,120 @@ Here is the question below:\n
 `;
 
 export async function POST(req: Request) {
-  // Require authentication before processing chat requests
-  // This prevents unauthorized API usage and enables rate limiting per user
-  const user = await requireUser()
+  try {
+    // Require authentication before processing chat requests
+    // This prevents unauthorized API usage and enables rate limiting per user
+    let user;
+    try {
+      user = await requireUser();
+    } catch (authError) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
-  const { messages } = await req.json();
-  console.log("Messages:", messages[0].parts[0].text);
+    // Check rate limit for user
+    const userTier = getUserTier(user.sub);
+    const rateLimitResult = checkRateLimit(user.sub, userTier);
 
-  const result = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: systemPrompt + messages[0].parts[0].text,
-  });
+    // Add rate limit headers to response
+    const headers = {
+      'X-RateLimit-Limit': String(rateLimitResult.remaining + 1), // Include current request
+      'X-RateLimit-Remaining': String(Math.max(0, rateLimitResult.remaining)),
+      'X-RateLimit-Reset': String(Math.ceil(rateLimitResult.resetTime / 1000)),
+    };
 
-  const textResult = result.candidates![0].content?.parts![0].text;
-  console.log("Result:", textResult);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          message: `Rate limit exceeded. Please try again after ${rateLimitResult.retryAfter} seconds.`,
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        {
+          status: 429,
+          headers: {
+            ...headers,
+            'Retry-After': String(rateLimitResult.retryAfter),
+          },
+        }
+      );
+    }
 
-  return new NextResponse(textResult);
+    // Parse and validate request body
+    let requestData: unknown;
+    try {
+      requestData = await req.json();
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400, headers }
+      );
+    }
+
+    // Validate against schema
+    const validationResult = ChatRequestSchema.safeParse(requestData);
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.errors
+        .map((err) => `${err.path.join(".")}: ${err.message}`)
+        .join("; ");
+      return NextResponse.json(
+        { error: "Invalid request structure", details: errorMessages },
+        { status: 400, headers }
+      );
+    }
+
+    const { messages } = validationResult.data as ChatRequest;
+    const userMessage = messages[0].parts[0].text;
+
+    console.log("User:", user.sub);
+    console.log("Tier:", userTier);
+    console.log("Remaining requests:", rateLimitResult.remaining);
+    console.log("Messages:", userMessage);
+
+    // Check if AI service is available
+    if (!ai || !ai.models) {
+      return NextResponse.json(
+        { error: "AI service unavailable" },
+        { status: 503, headers }
+      );
+    }
+
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: systemPrompt + userMessage,
+    });
+
+    const textResult = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!textResult) {
+      return NextResponse.json(
+        { error: "No response generated from AI" },
+        { status: 502, headers }
+      );
+    }
+
+    console.log("Result:", textResult);
+
+    return new NextResponse(textResult, {
+      status: 200,
+      headers: {
+        ...headers,
+        "Content-Type": "text/plain",
+      }
+    });
+  } catch (error) {
+    console.error("Chat API error:", error);
+    
+    // Return more specific error messages based on error type
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+    }
+    
+    return NextResponse.json(
+      { error: "Internal server error", message: "Failed to generate chat response" },
+      { status: 500 }
+    );
+  }
 }
