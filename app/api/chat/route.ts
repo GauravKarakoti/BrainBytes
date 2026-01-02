@@ -68,9 +68,6 @@ function extractTextFromMessage(first: any): string | undefined {
   return undefined
 }
 
-function isValidMessage(first: any): boolean {
-  if (!first || typeof first !== 'object') return false
-
 function isValidMessage(message: any): boolean {
   if (!message || typeof message !== 'object') return false
 

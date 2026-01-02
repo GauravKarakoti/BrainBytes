@@ -66,7 +66,7 @@ This section guides you through submitting a bug report.
 ## Tech Stack References
 * [Next.js Documentation](https://nextjs.org/docs)
 * [Drizzle ORM](https://orm.drizzle.team/)
-* [Clerk / Auth0](https://auth0.com/)
+* [Auth0](https://auth0.com/)
 * [Tailwind CSS](https://tailwindcss.com/)
 
 ## License
