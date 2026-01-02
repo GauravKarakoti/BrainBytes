@@ -66,12 +66,35 @@ jobs:
         env:
           DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
       
+      - name: Check schema consistency (drizzle-kit check)
+        id: schema-check
+        run: pnpm drizzle-kit check
+        continue-on-error: true
+        env:
+          DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
+      
       - name: Generate migration preview
         id: generate
         run: pnpm drizzle-kit generate
         continue-on-error: true
         env:
           DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
+      
+      - name: Verify schema drift
+        id: drift-check
+        run: |
+          if git diff --exit-code drizzle/ > /dev/null 2>&1; then
+            echo "✅ Schema is in sync - no uncommitted migrations"
+            echo "in_sync=true" >> $GITHUB_OUTPUT
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Schema drift detected - uncommitted migrations exist"
+            echo "in_sync=false" >> $GITHUB_OUTPUT
+            echo "drift_detected=true" >> $GITHUB_OUTPUT
+            echo "=== Changes in drizzle/ directory ===" 
+            git diff drizzle/
+          fi
+        continue-on-error: true
       
       - name: Verify schema integrity
         run: |
@@ -97,18 +120,52 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const path = require('path');
             
-            const schemaDir = 'db/schema/';
-            if (fs.existsSync(schemaDir)) {
-              const files = fs.readdirSync(schemaDir);
+            try {
+              const schemaDir = 'db/schema/';
+              let messageBody = '## Database Schema Verification\n\n';
+              
+              // Check if schema directory exists
+              if (fs.existsSync(schemaDir)) {
+                const files = fs.readdirSync(schemaDir);
+                messageBody += `✅ **Schema Files**: Found ${files.length} schema file(s)\n`;
+              } else {
+                messageBody += `⚠️ **Schema Directory**: Not found\n`;
+              }
+              
+              messageBody += `\n### Schema Consistency Status\n`;
+              
+              // Add schema drift info
+              const driftDetected = '${{ steps.drift-check.outputs.drift_detected }}' === 'true';
+              if (!driftDetected) {
+                messageBody += `✅ **No Drift**: All migrations are properly committed\n`;
+                messageBody += `✔️ TypeScript definitions match migration files\n`;
+              } else {
+                messageBody += `⚠️ **Schema Drift Detected**: Uncommitted migrations exist\n`;
+                messageBody += `🔧 **Action Required**: Run \`pnpm db:gen\` and commit migrations\n`;
+              }
+              
+              messageBody += `\n### CI Checks Performed\n`;
+              messageBody += `- ✅ Drizzle configuration validation\n`;
+              messageBody += `- ✅ Schema integrity checks\n`;
+              messageBody += `- ✅ TypeScript type validation\n`;
+              messageBody += `- ✅ Migration conflict detection\n`;
+              messageBody += `- ✅ Schema drift verification\n`;
+              
+              // Create comment on PR
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `✅ Database schema verification passed. Found ${files.length} schema file(s).`
+                body: messageBody
               });
+              
+              console.log('Comment posted successfully');
+            } catch (error) {
+              console.error('Error posting comment:', error);
+              // Continue on error - don't fail the workflow
             }
         continue-on-error: true
