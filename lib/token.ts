@@ -1,9 +1,10 @@
 'use server'
 import { getUserProgress } from '@/db/queries/userProgress'
 import { requireUser } from '@/lib/auth0'
-import { ethers } from 'ethers'
+import { publicClient } from '@/lib/viem'
+import { formatUnits } from 'viem'
 
-const contractAddress = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS
+const contractAddress = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS as `0x${string}` | undefined
 const rpcUrl = process.env.RPC_PROVIDER_URL
 
 if (!contractAddress || !rpcUrl) {
@@ -12,29 +13,32 @@ if (!contractAddress || !rpcUrl) {
   )
 }
 
-const abi = ['function balanceOf(address owner) view returns (uint256)']
-
-let provider: ethers.JsonRpcProvider | null = null
-let contract: ethers.Contract | null = null
-
-if (rpcUrl) {
-  provider = new ethers.JsonRpcProvider(rpcUrl)
-}
-
-if (provider && contractAddress) {
-  contract = new ethers.Contract(contractAddress, abi, provider)
-}
+const abi = [
+  {
+    type: 'function',
+    name: 'balanceOf',
+    inputs: [{ name: 'owner', type: 'address' }],
+    outputs: [{ type: 'uint256' }],
+    stateMutability: 'view'
+  }
+] as const
 
 export const getByteBalance = async (
   wallet_address: string
 ): Promise<string> => {
-  if (!contract || !wallet_address) {
+  if (!contractAddress || !wallet_address) {
     return '0.0'
   }
 
   try {
-    const balance = await contract.balanceOf(wallet_address)
-    const formattedBalance = ethers.formatUnits(balance, 18)
+    const balance = await publicClient.readContract({
+      address: contractAddress,
+      abi: abi,
+      functionName: 'balanceOf',
+      args: [wallet_address as `0x${string}`]
+    })
+
+    const formattedBalance = formatUnits(balance as bigint, 18)
     
     return parseFloat(formattedBalance).toFixed(2)
   } catch (error) {
