@@ -150,7 +150,7 @@ export async function POST(req: Request) {
 
   if (!userText) {
     console.warn('[chat] No message text found in the provided message structure')
-    return new NextResponse('No message text found', { status: 400 })
+    return new NextResponse('Invalid message: contains no non-empty text content', { status: 400 })
   }
 
   console.log('Messages text:', userText)
