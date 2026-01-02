@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth0";
+import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 
 const ai = new GoogleGenAI({});
 
@@ -31,24 +32,24 @@ Always be cheerful and encouraging!
 Here is the question below:\n
 `;
 
-function extractTextFromMessage(first: any): string | undefined {
+function extractTextFromMessage(message: any): string | undefined {
   // Defensive: ensure we have an object
-  if (!first || typeof first !== 'object') return undefined
+  if (!message || typeof message !== 'object') return undefined
 
   // Handle `parts` arrays (common in some AI SDK payloads)
-  if (Array.isArray(first.parts) && first.parts.length > 0) {
-    const partsText = first.parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).join('\n').trim()
+  if (Array.isArray(message.parts) && message.parts.length > 0) {
+    const partsText = message.parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).join('\n').trim()
     if (partsText) return partsText
   }
 
   // Handle `content` as string
-  if (typeof first.content === 'string' && first.content.trim()) {
-    return first.content.trim()
+  if (typeof message.content === 'string' && message.content.trim()) {
+    return message.content.trim()
   }
 
   // Handle `content` as array (strings or objects)
-  if (Array.isArray(first.content) && first.content.length > 0) {
-    const contentText = first.content
+  if (Array.isArray(message.content) && message.content.length > 0) {
+    const contentText = message.content
       .map((c: any) => {
         if (typeof c === 'string') return c
         if (typeof c?.text === 'string') return c.text
@@ -61,29 +62,35 @@ function extractTextFromMessage(first: any): string | undefined {
   }
 
   // Legacy `text` field
-  if (typeof first.text === 'string' && first.text.trim()) {
-    return first.text.trim()
+  if (typeof message.text === 'string' && message.text.trim()) {
+    return message.text.trim()
   }
 
   return undefined
 }
 
-function isValidMessage(first: any): boolean {
-  if (!first || typeof first !== 'object') return false
+function isValidMessage(message: any): boolean {
+  if (!message || typeof message !== 'object') return false
 
-  if (Array.isArray(first.parts) && first.parts.some((p: any) => typeof p?.text === 'string' && p.text.trim())) return true
+  // `parts` must contain at least one non-empty trimmed text
+  if (Array.isArray(message.parts) && message.parts.some((p: any) => typeof p?.text === 'string' && p.text.trim())) return true
 
-  if (typeof first.content === 'string' && first.content.trim()) return true
+  // `content` can be a non-empty string
+  if (typeof message.content === 'string' && message.content.trim()) return true
 
+  // `content` can be an array of strings or objects with non-empty text/parts
   if (
-    Array.isArray(first.content) &&
-    first.content.some((c: any) =>
-      typeof c === 'string' || typeof c?.text === 'string' || (Array.isArray(c?.parts) && c.parts.some((pp: any) => typeof pp?.text === 'string'))
+    Array.isArray(message.content) &&
+    message.content.some((c: any) =>
+      (typeof c === 'string' && c.trim()) ||
+      (typeof c?.text === 'string' && c.text.trim()) ||
+      (Array.isArray(c?.parts) && c.parts.some((pp: any) => typeof pp?.text === 'string' && pp.text.trim()))
     )
   )
     return true
 
-  if (typeof first.text === 'string' && first.text.trim()) return true
+  // legacy `text` must be non-empty
+  if (typeof message.text === 'string' && message.text.trim()) return true
 
   return false
 }
@@ -116,8 +123,8 @@ function extractTextFromCandidate(candidate: any): string {
 
 export async function POST(req: Request) {
   // Require authentication before processing chat requests
-  // This prevents unauthorized API usage and enables rate limiting per user
-  await requireUser()
+  // This enables per-user rate limiting and audit logging
+  const user = await requireUser()
 
   // Parse and validate incoming JSON
   let body: any
@@ -125,7 +132,7 @@ export async function POST(req: Request) {
     body = await req.json()
   } catch (err) {
     console.error('[chat] Invalid JSON payload:', err)
-    return new NextResponse('Invalid JSON payload', { status: 400 })
+    return new NextResponse("Request body must be valid JSON with a 'messages' array", { status: 400 })
   }
 
   const messages = body?.messages
@@ -135,22 +142,57 @@ export async function POST(req: Request) {
     return new NextResponse('Invalid messages: expected non-empty array', { status: 400 })
   }
 
-  const first = messages[0]
+  // Note: only the first message is processed by this endpoint
+  const userMessage = messages[0]
 
   // Validate message structure before attempting to extract text
-  if (!isValidMessage(first)) {
-    console.warn('[chat] Invalid message structure', { sample: first })
-    return new NextResponse('Invalid message structure', { status: 400 })
+  if (!isValidMessage(userMessage)) {
+    console.warn('[chat] Invalid message structure')
+    return new NextResponse(
+      "Invalid message structure: message must include non-empty text in 'content', 'text', or 'parts'",
+      { status: 400 },
+    )
   }
 
-  const userText = extractTextFromMessage(first)
+  const userText = extractTextFromMessage(userMessage)
 
   if (!userText) {
-    console.warn('[chat] No message text found in the provided message structure')
-    return new NextResponse('No message text found', { status: 400 })
+    console.warn('[chat] Invalid message: contains no non-empty text content')
+    return new NextResponse('Invalid message: contains no non-empty text content', { status: 400 })
   }
 
-  console.log('Messages text:', userText)
+  // Rate limiting: determine tier and enforce limits
+  let rlLimit = 5
+  let rateLimitInfo: { allowed: boolean; remaining: number; reset: number } | undefined
+  let rateLimitLimit: number | undefined
+
+  try {
+    const { limit } = await resolveUserTier(user)
+    rlLimit = limit
+    const rl = await checkRateLimit(user.id, rlLimit)
+
+    // Attach rate limit headers on responses for blocked requests
+    if (!rl.allowed) {
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': String(rlLimit),
+          'X-RateLimit-Remaining': String(rl.remaining),
+          'X-RateLimit-Reset': String(Math.floor(rl.reset / 1000)),
+        },
+      })
+    }
+
+    // Capture rate limit info for successful response (avoid mutating user object)
+    rateLimitInfo = rl
+    rateLimitLimit = rlLimit
+  } catch (err) {
+    console.error('[chat] Rate limit check failed:', err)
+    // Continue without rate limiting on unexpected errors but log it
+  }
+
+  // Log metadata only (avoid logging user-provided text)
+  console.log('[chat] Processing message', { userId: user?.id ?? 'unknown' })
 
   // Call the AI model
   let result: any
@@ -159,8 +201,18 @@ export async function POST(req: Request) {
       model: 'gemini-2.5-flash',
       contents: systemPrompt + userText,
     })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[chat] AI generation failed:', err)
+
+    const statusCode = err?.status ?? err?.statusCode
+    if (statusCode === 429) {
+      return new NextResponse('AI generation rate-limited, please retry shortly', { status: 429 })
+    }
+
+    if (typeof statusCode === 'number' && statusCode >= 500) {
+      return new NextResponse('AI service unavailable, please try again later', { status: 502 })
+    }
+
     return new NextResponse('AI generation failed', { status: 500 })
   }
 
@@ -174,7 +226,20 @@ export async function POST(req: Request) {
     textResult = result.content
   }
 
-  console.log('Result:', textResult)
+  if (!textResult || !textResult.trim()) {
+    console.error('[chat] AI returned empty response')
+    return new NextResponse('AI returned an empty response', { status: 502 })
+  }
 
-  return new NextResponse(textResult)
+  // Log response metadata (avoid logging content)
+  console.log('[chat] Responding with generated text (length)', { length: textResult.length })
+
+  const headers: Record<string, string> = {}
+  if (typeof rateLimitLimit === 'number') headers['X-RateLimit-Limit'] = String(rateLimitLimit)
+  if (rateLimitInfo) {
+    headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+    if (rateLimitInfo.reset != null) headers['X-RateLimit-Reset'] = String(Math.floor(rateLimitInfo.reset / 1000))
+  }
+
+  return new NextResponse(textResult, { headers })
 }
