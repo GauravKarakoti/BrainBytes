@@ -138,15 +138,15 @@ export async function POST(req: Request) {
     return new NextResponse('Invalid messages: expected non-empty array', { status: 400 })
   }
 
-  const first = messages[0]
+  const userMessage = messages[0]
 
   // Validate message structure before attempting to extract text
-  if (!isValidMessage(first)) {
-    console.warn('[chat] Invalid message structure', { sample: first })
+  if (!isValidMessage(userMessage)) {
+    console.warn('[chat] Invalid message structure', { sample: userMessage })
     return new NextResponse('Invalid message structure', { status: 400 })
   }
 
-  const userText = extractTextFromMessage(first)
+  const userText = extractTextFromMessage(userMessage)
 
   if (!userText) {
     console.warn('[chat] No message text found in the provided message structure')
