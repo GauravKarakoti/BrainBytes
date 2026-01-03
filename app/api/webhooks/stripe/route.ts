@@ -35,13 +35,35 @@ export async function POST(req: NextRequest) {
       return new NextResponse("User ID is required", { status: 400 });
     }
 
+    const planId = session.metadata.planId || "free";
+    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+
     await db.insert(userSubscription).values({
       userId: session.metadata.userId,
+      planId,
+      paymentMethod: "stripe",
       stripeSubscriptionId: subscription.id,
       stripeCustomerId: subscription.customer as string,
       stripePriceId: subscription.items.data[0].price.id,
-      // stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      stripeCurrentPeriodEnd: new Date(),
+      stripeCurrentPeriodEnd: currentPeriodEnd,
+      currentPeriodStart: new Date(),
+      currentPeriodEnd,
+      renewalDate: currentPeriodEnd,
+      status: "active",
+      isActive: true,
+    }).onConflictDoUpdate({
+      target: userSubscription.userId,
+      set: {
+        planId,
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: subscription.customer as string,
+        stripePriceId: subscription.items.data[0].price.id,
+        stripeCurrentPeriodEnd: currentPeriodEnd,
+        currentPeriodEnd,
+        status: "active",
+        isActive: true,
+        updatedAt: new Date(),
+      },
     });
   }
 
@@ -49,16 +71,58 @@ export async function POST(req: NextRequest) {
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     );
-    console.log("Subscription:", subscription);
+
+    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
 
     await db
       .update(userSubscription)
       .set({
         stripePriceId: subscription.items.data[0].price.id,
-        // stripeCurrentPeriodEnd: new Date(
-        //   subscription.current_period_end * 1000
-        // ),
-        stripeCurrentPeriodEnd: new Date(),
+        stripeCurrentPeriodEnd: currentPeriodEnd,
+        currentPeriodEnd,
+        renewalDate: currentPeriodEnd,
+        status: "active",
+        isActive: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object as Stripe.Subscription;
+
+    await db
+      .update(userSubscription)
+      .set({
+        status: "cancelled",
+        isActive: false,
+        cancelledAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+  }
+
+  if (event.type === "customer.subscription.paused") {
+    const subscription = event.data.object as Stripe.Subscription;
+
+    await db
+      .update(userSubscription)
+      .set({
+        status: "paused",
+        updatedAt: new Date(),
+      })
+      .where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+  }
+
+  if (event.type === "customer.subscription.resumed") {
+    const subscription = event.data.object as Stripe.Subscription;
+
+    await db
+      .update(userSubscription)
+      .set({
+        status: "active",
+        isActive: true,
+        updatedAt: new Date(),
       })
       .where(eq(userSubscription.stripeSubscriptionId, subscription.id));
   }
