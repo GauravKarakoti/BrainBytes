@@ -4,17 +4,17 @@ import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 
 const ai: GoogleGenAI = (() => {
-  if (!process.env.GOOGLE_GENAI_API_KEY) {
+  if (!process.env.GOOGLE_API_KEY) {
     // Allow build to pass without API key
     if (process.env.NODE_ENV === 'production') {
-      console.warn('GOOGLE_GENAI_API_KEY is not set');
+      console.warn('GOOGLE_API_KEY is not set');
     }
     // Return a dummy instance or handle it gracefully
     // For build purposes, we can just return a dummy object casted as GoogleGenAI
     // or better, just use a mock key if we are just building
     return new GoogleGenAI({ apiKey: "mock-key-for-build" });
   }
-  return new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
+  return new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 })();
 
 function getAI() {
