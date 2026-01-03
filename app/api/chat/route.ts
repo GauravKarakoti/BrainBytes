@@ -3,18 +3,16 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 
-let ai: GoogleGenAI;
+const ai: GoogleGenAI = (() => {
+  if (!process.env.GOOGLE_GENAI_API_KEY) {
+    throw new Error('GOOGLE_GENAI_API_KEY is not set');
+  }
+  return new GoogleGenAI({});
+})();
 
 function getAI() {
-  if (!ai) {
-    if (!process.env.GOOGLE_GENAI_API_KEY) {
-      throw new Error('GOOGLE_GENAI_API_KEY is not set');
-    }
-    ai = new GoogleGenAI({});
-  }
   return ai;
 }
-
 export const maxDuration = 30;
 
 const systemPrompt = `
