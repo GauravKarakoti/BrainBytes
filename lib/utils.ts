@@ -6,6 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getMetadataRootURL() {
-  return new URL(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}`)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!baseUrl) {
+    throw new Error("Environment variable NEXT_PUBLIC_APP_URL must be set for metadata generation.")
+  }
+  return new URL(baseUrl)
 }
 

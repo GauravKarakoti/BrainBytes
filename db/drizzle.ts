@@ -3,8 +3,13 @@ import { neon } from '@neondatabase/serverless'
 
 import * as schema from '@/db/schema'
 
-const sql = neon(process.env.DATABASE_URL || "postgres://mock:mock@localhost:5432/mock")
+const databaseUrl = process.env.DATABASE_URL
 
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL environment variable is not set. Please define it before starting the application.')
+}
+
+const sql = neon(databaseUrl)
 export const db = drizzle(sql, { schema, logger: true })
 
 
