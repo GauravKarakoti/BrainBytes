@@ -10,7 +10,7 @@ function getAI() {
     if (!process.env.GOOGLE_GENAI_API_KEY) {
       throw new Error('GOOGLE_GENAI_API_KEY is not set');
     }
-    ai = new GoogleGenAI({});
+    ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
   }
   return ai;
 }
