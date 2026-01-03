@@ -1,6 +1,12 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_API_SECRET_KEY || "sk_test_mock_key_for_build", {
+const secretKey = process.env.STRIPE_API_SECRET_KEY;
+
+if (!secretKey) {
+  throw new Error("STRIPE_API_SECRET_KEY environment variable is not set.");
+}
+
+export const stripe = new Stripe(secretKey, {
   apiVersion: "2025-10-29.clover",
   typescript: true,
 });
