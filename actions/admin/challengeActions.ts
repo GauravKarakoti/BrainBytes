@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { and, asc, count, desc, eq, ilike, inArray } from "drizzle-orm";
-import { db } from "@/db/drizzle";
+import { getDb } from "@/db/drizzle";
 import * as schema from "@/db/schema";
 import { getIsAdmin } from "@/lib/admin";
 import { type GetListParams } from "./types";
@@ -40,13 +40,13 @@ export const getChallengesList = async (params: GetListParams) => {
   );
 
   const [data, total] = await Promise.all([
-    db.query.challenges.findMany({
+    getDb().query.challenges.findMany({
       limit: perPage,
       offset,
       orderBy,
       where: whereClauses,
     }),
-    db.select({ count: count() }).from(schema.challenges).where(whereClauses),
+    getDb().select({ count: count() }).from(schema.challenges).where(whereClauses),
   ]);
 
   return { data, total: total[0].count };
@@ -54,7 +54,7 @@ export const getChallengesList = async (params: GetListParams) => {
 
 export const getChallengeOne = async (id: number) => {
   checkAdmin();
-  const data = await db.query.challenges.findFirst({
+  const data = await getDb().query.challenges.findFirst({
     where: eq(schema.challenges.id, id),
   });
   return { data };
@@ -62,7 +62,7 @@ export const getChallengeOne = async (id: number) => {
 
 export const getChallengeMany = async (ids: number[]) => {
   checkAdmin();
-  const data = await db.query.challenges.findMany({
+  const data = await getDb().query.challenges.findMany({
     where: inArray(schema.challenges.id, ids),
   });
   return { data };
@@ -70,7 +70,7 @@ export const getChallengeMany = async (ids: number[]) => {
 
 export const createChallenge = async (data: typeof schema.challenges.$inferInsert) => {
   checkAdmin();
-  const [newChallenge] = await db
+  const [newChallenge] = await getDb()
     .insert(schema.challenges)
     .values(data)
     .returning();
@@ -80,7 +80,7 @@ export const createChallenge = async (data: typeof schema.challenges.$inferInser
 
 export const updateChallenge = async (id: number, data: Partial<typeof schema.challenges.$inferSelect>) => {
   checkAdmin();
-  const [updatedChallenge] = await db
+  const [updatedChallenge] = await getDb()
     .update(schema.challenges)
     .set(data)
     .where(eq(schema.challenges.id, id))
@@ -91,7 +91,7 @@ export const updateChallenge = async (id: number, data: Partial<typeof schema.ch
 
 export const deleteChallenge = async (id: number) => {
   checkAdmin();
-  const [deletedChallenge] = await db
+  const [deletedChallenge] = await getDb()
     .delete(schema.challenges)
     .where(eq(schema.challenges.id, id))
     .returning();

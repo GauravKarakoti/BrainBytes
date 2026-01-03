@@ -42,11 +42,20 @@ This checklist verifies that all API endpoints have appropriate authentication a
   - **Status**: ✅ Protected with `CRON_SECRET`
   - **Implementation**: `authHeader === Bearer ${process.env.CRON_SECRET}`
 
-### 5. Authentication Routes
-- [x] `/api/auth/[auth0]` - Auth0 callback endpoint
-  - **Risk**: LOW (Auth0 handles verification)
-  - **Status**: ✅ Properly excluded from middleware
-  - **Reason**: Auth0 requires unauthenticated access for OAuth callback
+### 6. CI/CD Security Automation (`.github/workflows/web-app-ci.yml`)
+- [x] Automated dependency vulnerability scanning with `pnpm audit`
+  - **Audit Level**: Critical vulnerabilities cause build failure
+  - **Status**: ✅ Implemented
+- [x] Static application security testing (SAST) with CodeQL
+  - **Languages**: JavaScript/TypeScript
+  - **Status**: ✅ Implemented
+- [x] Container and filesystem vulnerability scanning with Trivy
+  - **Scan Type**: Filesystem scan
+  - **Output**: SARIF reports uploaded to GitHub Security tab
+  - **Status**: ✅ Implemented
+- [x] Build failure on critical security issues
+  - **Triggers**: Pull requests and pushes to main/develop branches
+  - **Status**: ✅ Implemented
 
 ---
 

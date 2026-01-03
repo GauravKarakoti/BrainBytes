@@ -3,7 +3,17 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 
-const ai = new GoogleGenAI({});
+let ai: GoogleGenAI;
+
+function getAI() {
+  if (!ai) {
+    if (!process.env.GOOGLE_GENAI_API_KEY) {
+      throw new Error('GOOGLE_GENAI_API_KEY is not set');
+    }
+    ai = new GoogleGenAI({});
+  }
+  return ai;
+}
 
 export const maxDuration = 30;
 
@@ -193,7 +203,7 @@ export async function POST(req: Request) {
   // Call the AI model
   let result: any
   try {
-    result = await ai.models.generateContent({
+    result = await getAI().models.generateContent({
       model: 'gemini-2.5-flash',
       contents: systemPrompt + userText,
     })
