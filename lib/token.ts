@@ -20,8 +20,8 @@ export const getByteBalance = async (
   }
 
   try {
-    const balance = await readByteBalance(wallet_address as any)
-    const formattedBalance = formatUnits(balance as any, 18)
+    const balance = await readByteBalance(wallet_address)
+    const formattedBalance = formatUnits(balance, 18)
     return parseFloat(formattedBalance).toFixed(2)
   } catch (error) {
     console.error('[BYTE_BALANCE_FETCH] Failed to fetch token balance:', error)
