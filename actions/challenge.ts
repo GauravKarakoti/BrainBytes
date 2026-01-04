@@ -2,8 +2,7 @@
 
 import { and, eq, sql } from 'drizzle-orm'
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { byteTokenContract, B_DECIMALS } from '@/lib/ethers'
-import { ethers } from 'ethers'
+import { B_DECIMALS, mintByte, parseUnitsFn } from '@/lib/ethers'
 import { db } from '@/db/drizzle'
 import {
   challengeProgress as challengeProgressSchema,
@@ -121,11 +120,13 @@ export async function upsertChallengeProgress(challengeId: number) {
     console.log("Current User Progress:",currentUserProgress)
     if (currentUserProgress.wallet_address) {
       try {
-        const amount = ethers.parseUnits(TOKENS_PER_CHALLENGE.toString(), B_DECIMALS);
-        const tx = await byteTokenContract.mint(currentUserProgress.wallet_address, amount);
-        console.log(`Minting ${TOKENS_PER_CHALLENGE} BYTE to ${currentUserProgress.wallet_address}, tx: ${tx.hash}`);
+        const amount = parseUnitsFn(TOKENS_PER_CHALLENGE.toString(), B_DECIMALS);
+        const tx = await mintByte(currentUserProgress.wallet_address, amount as bigint);
+        // writeContract often returns an object with a `hash` property
+        const txHash = (tx as any)?.hash ?? (tx as any) ?? ''
+        console.log(`Minting ${TOKENS_PER_CHALLENGE} BYTE to ${currentUserProgress.wallet_address}, tx: ${txHash}`);
       } catch (error) {
-        console.error("Failed to mint BYTE tokens:", error);
+        console.error('Failed to mint BYTE tokens:', error);
       }
     }
 
