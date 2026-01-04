@@ -8,7 +8,7 @@
 - **Backend:** Next.js API Routes, Node.js
 - **Database:** PostgreSQL (Neon Serverless), Drizzle ORM
 - **Authentication:** Auth0
-- **Blockchain:** Ethereum (Sepolia), Hardhat, Solidity, Wagmi, Ethers.js
+- **Blockchain:** Ethereum (Sepolia), Hardhat, Solidity, Wagmi, viem
 - **Real-time:** Pusher
 - **Payments:** Stripe
 - **AI/Chat:** Google Generative AI (Gemini 2.5 Flash)
