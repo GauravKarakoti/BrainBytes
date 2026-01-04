@@ -87,12 +87,15 @@ export function ShopItemCard({ item, hearts, points, gems, bytes }: ShopItemCard
           })
 
           // `writeContract` can return an object containing a `hash` or the hash directly
-          const txHash = (tx as any)?.hash ?? (tx as any) ?? ''
+          const txHash = (tx as any)?.hash ?? (tx as any)
+          if (!txHash) {
+            throw new Error('Failed to obtain transaction hash')
+          }
 
           toast.loading('Processing transaction...')
 
           // Wait for receipt
-          await publicClient.waitForTransactionReceipt({ hash: String(txHash) })
+          await publicClient.waitForTransactionReceipt({ hash: txHash as `0x${string}` })
 
           const result = await verifyRedemption(item.id, String(txHash))
 
