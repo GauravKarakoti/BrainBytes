@@ -8,10 +8,14 @@ if (!BYTE_TOKEN_ADDRESS || !SERVER_WALLET_PRIVATE_KEY || !RPC_PROVIDER_URL) {
   throw new Error('Missing blockchain environment variables')
 }
 
+const normalizedServerWalletPrivateKey = (SERVER_WALLET_PRIVATE_KEY.startsWith('0x')
+  ? SERVER_WALLET_PRIVATE_KEY
+  : `0x${SERVER_WALLET_PRIVATE_KEY}`) as `0x${string}`
+
 const publicClient = createPublicClient({ transport: http(RPC_PROVIDER_URL) })
 const walletClient = createWalletClient({
   transport: http(RPC_PROVIDER_URL),
-  account: privateKeyToAccount(SERVER_WALLET_PRIVATE_KEY)
+  account: privateKeyToAccount(normalizedServerWalletPrivateKey)
 })
 
 const byteTokenAbi = [
