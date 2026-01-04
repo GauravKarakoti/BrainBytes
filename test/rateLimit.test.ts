@@ -32,7 +32,7 @@ describe('rate limiter', () => {
 
 
   it('applies premium limits when subscription is active', async () => {
-    subSpy.mockImplementation(async (_userId?: string | null) => ({ isActive: true }))
+    subSpy.mockImplementation(async (_userId?: string | null) => ({ isActive: true } as any))
     const userId = 'premium-user'
     const { tier, limit } = await resolveUserTier({ id: userId } as any)
     expect(tier).toBe('premium')
