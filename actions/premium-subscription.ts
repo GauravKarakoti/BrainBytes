@@ -193,7 +193,7 @@ export const cancelSubscription = async () => {
 
   if (currentSubscription.paymentMethod === "stripe" && currentSubscription.stripeSubscriptionId) {
     // Cancel in Stripe
-    await stripe.subscriptions.del(currentSubscription.stripeSubscriptionId);
+    await stripe.subscriptions.cancel(currentSubscription.stripeSubscriptionId);
   }
 
   // Update in database
