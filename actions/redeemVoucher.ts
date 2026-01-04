@@ -69,12 +69,14 @@ export async function verifyRedemption(itemId: number, txHash: string) {
     for (const log of receipt.logs ?? []) {
       if (log.address.toLowerCase() === String(BYTE_TOKEN_ADDRESS).toLowerCase()) {
         try {
-          const parsed = decodeEventLog({ abi: byteTokenAbi as any, data: log.data, topics: log.topics })
+          const parsed = decodeEventLog({ abi: byteTokenAbi, data: log.data, topics: log.topics })
           // decoded args will be in `args` with named keys matching inputs
           if (parsed && parsed.eventName === 'Transfer') {
-            const from = (parsed.args as any).from as string
-            const to = (parsed.args as any).to as string
-            const value = (parsed.args as any).value as bigint
+            const { from, to, value } = parsed.args as {
+              from: string
+              to: string
+              value: bigint
+            }
 
             if (
               from.toLowerCase() === uProgress.wallet_address.toLowerCase() &&
