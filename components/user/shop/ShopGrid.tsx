@@ -76,10 +76,16 @@ export function ShopItemCard({ item, hearts, points, gems, bytes }: ShopItemCard
           const walletClient = createWalletClient({ transport })
           const publicClient = createPublicClient({ transport })
 
+          const [account] = await walletClient.getAddresses()
+          if (!account) {
+            throw new Error('No account found. Please connect your wallet and try again.')
+          }
+
           const amount = parseUnits(item.byteCost!.toString(), B_DECIMALS)
           toast.loading('Please approve the transaction in your wallet...')
 
           const tx = await walletClient.writeContract({
+            account,
             address: BYTE_TOKEN_ADDRESS,
             abi: byteTokenAbi as any,
             functionName: 'transfer',
