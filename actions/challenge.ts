@@ -121,7 +121,7 @@ export async function upsertChallengeProgress(challengeId: number) {
     if (currentUserProgress.wallet_address) {
       try {
         const amount = parseUnitsFn(TOKENS_PER_CHALLENGE.toString(), B_DECIMALS);
-        const tx = await mintByte(currentUserProgress.wallet_address, amount as bigint);
+        const tx = await mintByte(currentUserProgress.wallet_address, amount);
         const txHash = tx;
         console.log(`Minting ${TOKENS_PER_CHALLENGE} BYTE to ${currentUserProgress.wallet_address}, tx: ${txHash}`);
       } catch (error) {
