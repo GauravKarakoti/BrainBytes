@@ -957,6 +957,84 @@ int main() {
 
     await db.insert(schema.quests).values(questsData)
 
+    console.log('Seeding user progress...')
+    await db.insert(schema.userProgress).values([
+      {
+        userId: 'user1',
+        userName: 'Alice',
+        userImgSrc: '/logo.svg',
+        activeCourseId: 1,
+        hearts: 5,
+        points: 100,
+        gems: 20,
+        level: 1,
+      },
+      {
+        userId: 'user2',
+        userName: 'Bob',
+        userImgSrc: '/logo.svg',
+        activeCourseId: 2,
+        hearts: 3,
+        points: 200,
+        gems: 50,
+        level: 2,
+      },
+      {
+        userId: 'user3',
+        userName: 'Charlie',
+        userImgSrc: '/logo.svg',
+        activeCourseId: 3,
+        hearts: 5,
+        points: 50,
+        gems: 10,
+        level: 0,
+      },
+      {
+        userId: 'user4',
+        userName: 'Diana',
+        userImgSrc: '/logo.svg',
+        activeCourseId: 4,
+        hearts: 4,
+        points: 150,
+        gems: 30,
+        level: 1,
+      },
+    ])
+
+    console.log('Seeding challenge progress...')
+    await db.insert(schema.challengeProgress).values([
+      // User1 completed some Python challenges
+      { userId: 'user1', challengeId: 1, completed: true },
+      { userId: 'user1', challengeId: 2, completed: true },
+      { userId: 'user1', challengeId: 3, completed: true },
+      // User2 completed some JS challenges
+      { userId: 'user2', challengeId: 5, completed: true },
+      { userId: 'user2', challengeId: 6, completed: true },
+      { userId: 'user2', challengeId: 7, completed: true },
+      // User3 completed some C++ challenges
+      { userId: 'user3', challengeId: 9, completed: true },
+      { userId: 'user3', challengeId: 10, completed: true },
+      // User4 completed some Java challenges
+      { userId: 'user4', challengeId: 13, completed: true },
+      { userId: 'user4', challengeId: 14, completed: true },
+    ])
+
+    console.log('Seeding user quest progress...')
+    await db.insert(schema.userQuestProgress).values([
+      // User1 quests
+      { userId: 'user1', questId: 1, currentProgress: 5, completed: true },
+      { userId: 'user1', questId: 2, currentProgress: 3, completed: false },
+      // User2 quests
+      { userId: 'user2', questId: 1, currentProgress: 5, completed: true },
+      { userId: 'user2', questId: 3, currentProgress: 10, completed: true },
+      // User3 quests
+      { userId: 'user3', questId: 2, currentProgress: 2, completed: false },
+      { userId: 'user3', questId: 4, currentProgress: 1, completed: false },
+      // User4 quests
+      { userId: 'user4', questId: 1, currentProgress: 5, completed: true },
+      { userId: 'user4', questId: 5, currentProgress: 7, completed: false },
+    ])
+
     console.log('✅ [DB]: Seeded 100%!')
   } catch (error) {
     console.error(error)
