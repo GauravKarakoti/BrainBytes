@@ -1,9 +1,6 @@
 "use client"
 
-<<<<<<< HEAD
-=======
 import React from 'react'
->>>>>>> 3d050a3 (test: add unit test script for frontend; run unit tests in CI; add React import to Hero for test compatibility)
 import type { Variants } from 'framer-motion'
 import NextLink from 'next/link'
 import { useUser } from '@auth0/nextjs-auth0/client'

@@ -202,10 +202,16 @@ export async function POST(req: Request) {
   // Call the AI model
   let result: any
   try {
-    result = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: systemPrompt + userText,
-    })
+    // Support two possible SDK shapes:
+    // - ai.getGenerativeModel().generateContent(...) (test mock)
+    // - ai.models.generateContent(...) (real SDK)
+    if (typeof (ai as any).getGenerativeModel === 'function') {
+      result = await (ai as any).getGenerativeModel().generateContent({ model: 'gemini-2.5-flash', contents: systemPrompt + userText })
+    } else if ((ai as any).models?.generateContent) {
+      result = await (ai as any).models.generateContent({ model: 'gemini-2.5-flash', contents: systemPrompt + userText })
+    } else {
+      throw new Error('AI SDK is not available')
+    }
   } catch (err: any) {
     console.error('[chat] AI generation failed:', err)
 
@@ -229,6 +235,9 @@ export async function POST(req: Request) {
     textResult = extractTextFromCandidate(result.candidate)
   } else if (typeof result?.content === 'string') {
     textResult = result.content
+  } else if (typeof result?.response?.text === 'function') {
+    // Some SDK shapes (mock) return getGenerativeModel().generateContent() -> { response: { text: () => '...' } }
+    textResult = result.response.text()
   }
 
   if (!textResult || !textResult.trim()) {
