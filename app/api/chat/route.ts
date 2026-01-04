@@ -204,16 +204,15 @@ export async function POST(req: Request) {
   // Call the AI model
   let result: any
   try {
-    // Support two possible SDK shapes:
-    // - ai.getGenerativeModel().generateContent(...) (test mock)
-    // - ai.models.generateContent(...) (real SDK)
-    if (typeof (ai as any).getGenerativeModel === 'function') {
-      result = await (ai as any).getGenerativeModel().generateContent({ model: 'gemini-2.5-flash', contents: systemPrompt + userText })
-    } else if ((ai as any).models?.generateContent) {
-      result = await (ai as any).models.generateContent({ model: 'gemini-2.5-flash', contents: systemPrompt + userText })
-    } else {
+    const models = (ai as any).models
+    if (!models?.generateContent) {
       throw new Error('AI SDK is not available')
     }
+
+    result = await models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: systemPrompt + userText,
+    })
   } catch (err: any) {
     console.error('[chat] AI generation failed:', err)
 
