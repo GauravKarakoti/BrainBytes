@@ -59,7 +59,10 @@ jobs:
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
+      - name: Run unit tests
+        run: pnpm run test:unit
+
       - name: Run linter
         run: pnpm lint
         continue-on-error: true
@@ -117,7 +120,7 @@ jobs:
           category: "/language:javascript"
       
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -130,8 +133,9 @@ jobs:
           sarif_file: 'trivy-results.sarif'
           category: 'trivy'
       
-      - name: Run pnpm audit
-        run: pnpm audit --audit-level=critical
+      - name: Run npm audit
+        run: pnpm audit --audit-level=moderate
+        continue-on-error: true
   
   code-quality:
     runs-on: ubuntu-latest

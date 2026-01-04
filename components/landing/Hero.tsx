@@ -1,5 +1,6 @@
 "use client"
 
+import React from 'react'
 import type { Variants } from 'framer-motion'
 import NextLink from 'next/link'
 import { useUser } from '@auth0/nextjs-auth0/client'

@@ -1,7 +1,7 @@
 'use server'
 import { getUserProgress } from '@/db/queries/userProgress'
 import { requireUser } from '@/lib/auth0'
-import { ethers } from 'ethers'
+import { readByteBalance, formatUnits } from '@/lib/ethers'
 
 const contractAddress = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS
 const rpcUrl = process.env.RPC_PROVIDER_URL
@@ -12,30 +12,16 @@ if (!contractAddress || !rpcUrl) {
   )
 }
 
-const abi = ['function balanceOf(address owner) view returns (uint256)']
-
-let provider: ethers.JsonRpcProvider | null = null
-let contract: ethers.Contract | null = null
-
-if (rpcUrl) {
-  provider = new ethers.JsonRpcProvider(rpcUrl)
-}
-
-if (provider && contractAddress) {
-  contract = new ethers.Contract(contractAddress, abi, provider)
-}
-
 export const getByteBalance = async (
   wallet_address: string
 ): Promise<string> => {
-  if (!contract || !wallet_address) {
+  if (!wallet_address) {
     return '0.0'
   }
 
   try {
-    const balance = await contract.balanceOf(wallet_address)
-    const formattedBalance = ethers.formatUnits(balance, 18)
-    
+    const balance = await readByteBalance(wallet_address as any)
+    const formattedBalance = formatUnits(balance as any, 18)
     return parseFloat(formattedBalance).toFixed(2)
   } catch (error) {
     console.error('[BYTE_BALANCE_FETCH] Failed to fetch token balance:', error)

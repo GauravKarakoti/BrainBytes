@@ -62,17 +62,25 @@ jobs:
       
       - name: Validate Drizzle configuration
         run: pnpm drizzle-kit up
-        continue-on-error: true
         env:
           DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
       
       - name: Generate migration preview
         id: generate
         run: pnpm drizzle-kit generate
-        continue-on-error: true
         env:
           DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
       
+      - name: Fail on schema drift
+        run: |
+          echo "Checking git status for schema changes..."
+          git --no-pager status --porcelain
+          if ! git --no-pager diff --exit-code; then
+            echo "🚨 Database schema drift detected: generated migration files are not committed."
+            echo "Run 'pnpm db:gen' locally and commit the changes."
+            exit 1
+          fi
+
       - name: Verify schema integrity
         run: |
           echo "Checking schema files exist..."
@@ -83,7 +91,6 @@ jobs:
       
       - name: Type check database layer
         run: pnpm tsc --noEmit db/
-        continue-on-error: true
       
       - name: Check for migration conflicts
         run: |
@@ -91,7 +98,6 @@ jobs:
             echo "⚠️ Potential migration conflicts detected"
             exit 1
           fi
-        continue-on-error: true
       
       - name: Validate schema changes
         if: github.event_name == 'pull_request'

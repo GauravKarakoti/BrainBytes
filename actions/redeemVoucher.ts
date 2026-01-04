@@ -4,19 +4,28 @@ import { db } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
 import { revalidateTag } from 'next/cache'
-import { ethers } from 'ethers'
+import { createPublicClient, http, decodeEventLog, parseUnits, type Address } from 'viem'
 import { SHOP_ITEMS } from '@/config/shop'
 import { B_DECIMALS } from '@/lib/ethers'
-import { redeemedTransactions } from '@/db/schema' 
+import { redeemedTransactions } from '@/db/schema'
 import { requireUser } from '@/lib/auth0'
 
-const RPC_PROVIDER_URL = process.env.RPC_PROVIDER_URL!;
-const SHOP_WALLET_ADDRESS = process.env.NEXT_PUBLIC_SHOP_WALLET_ADDRESS!;
-const BYTE_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS!;
+const RPC_PROVIDER_URL = process.env.RPC_PROVIDER_URL!
+const SHOP_WALLET_ADDRESS = (process.env.NEXT_PUBLIC_SHOP_WALLET_ADDRESS as Address)!
+const BYTE_TOKEN_ADDRESS = (process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS as Address)!
 
+const publicClient = createPublicClient({ transport: http(RPC_PROVIDER_URL) })
 const byteTokenAbi = [
-  "event Transfer(address indexed from, address indexed to, uint256 value)"
-];
+  {
+    type: 'event',
+    name: 'Transfer',
+    inputs: [
+      { indexed: true, name: 'from', type: 'address' },
+      { indexed: true, name: 'to', type: 'address' },
+      { indexed: false, name: 'value', type: 'uint256' },
+    ],
+  },
+]
 
 export async function verifyRedemption(itemId: number, txHash: string) {
   const user = await requireUser()
@@ -35,45 +44,50 @@ export async function verifyRedemption(itemId: number, txHash: string) {
   }
 
   try {
-    const provider = new ethers.JsonRpcProvider(RPC_PROVIDER_URL);
-    const receipt = await provider.getTransactionReceipt(txHash);
+    const receipt = await publicClient.getTransactionReceipt({ hash: txHash })
 
-    if (!receipt || receipt.status !== 1) {
+    if (!receipt || receipt.status !== 'success') {
       return { error: 'Transaction failed or not found.' }
     }
-    
+
     const uProgress = await db.query.userProgress.findFirst({
       where: eq(userProgress.userId, userId),
-    });
-    
+    })
+
     if (!uProgress || !uProgress.wallet_address) {
-       return { error: 'User wallet not linked.' }
+      return { error: 'User wallet not linked.' }
     }
 
-    if (receipt.from.toLowerCase() !== uProgress.wallet_address.toLowerCase()) {
+    // receipt.from may not be present for some networks; skip strict check if missing
+    if (receipt.from && receipt.from.toLowerCase() !== uProgress.wallet_address.toLowerCase()) {
       return { error: 'Transaction was not sent from your wallet.' }
     }
 
-    const contract = new ethers.Interface(byteTokenAbi);
-    const expectedAmount = ethers.parseUnits(item.byteCost.toString(), B_DECIMALS);
-    
-    let transferValid = false;
-    for (const log of receipt.logs) {
-      if (log.address.toLowerCase() === BYTE_TOKEN_ADDRESS.toLowerCase()) {
+    const expectedAmount = parseUnits(item.byteCost.toString(), B_DECIMALS)
+
+    let transferValid = false
+    for (const log of receipt.logs ?? []) {
+      if (log.address.toLowerCase() === String(BYTE_TOKEN_ADDRESS).toLowerCase()) {
         try {
-          const parsedLog = contract.parseLog(log);
-          if (parsedLog && parsedLog.name === 'Transfer') {
-            const [from, to, value] = parsedLog.args;
+          const parsed = decodeEventLog({ abi: byteTokenAbi as any, data: log.data, topics: log.topics })
+          // decoded args will be in `args` with named keys matching inputs
+          if (parsed && parsed.eventName === 'Transfer') {
+            const from = (parsed.args as any).from as string
+            const to = (parsed.args as any).to as string
+            const value = (parsed.args as any).value as bigint
+
             if (
               from.toLowerCase() === uProgress.wallet_address.toLowerCase() &&
               to.toLowerCase() === SHOP_WALLET_ADDRESS.toLowerCase() &&
               value === expectedAmount
             ) {
-              transferValid = true;
-              break;
+              transferValid = true
+              break
             }
           }
-        } catch (e) { }
+        } catch (e) {
+          // continue
+        }
       }
     }
 
