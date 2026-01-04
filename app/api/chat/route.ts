@@ -3,8 +3,16 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 
-const ai = new GoogleGenAI({});
+const googleApiKey =
+  process.env.GOOGLE_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 
+if (!googleApiKey) {
+  throw new Error(
+    "GoogleGenAI API key is not set. Please define GOOGLE_API_KEY or NEXT_PUBLIC_GOOGLE_API_KEY in the environment.",
+  );
+}
+
+const ai = new GoogleGenAI({ apiKey: googleApiKey });
 export const maxDuration = 30;
 
 const systemPrompt = `
