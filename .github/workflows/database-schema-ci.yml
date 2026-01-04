@@ -90,7 +90,7 @@ jobs:
           echo "Total migration files: $(find drizzle -name '*.sql' | wc -l)"
       
       - name: Type check database layer
-        run: pnpm tsc --noEmit db/
+        run: pnpm tsc --noEmit
       
       - name: Check for migration conflicts
         run: |
