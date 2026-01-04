@@ -55,9 +55,7 @@ const nextConfig = {
     return config
   },
 
-  experimental: {
-    typedRoutes: true,
-  },
+
   logging: {
     fetches: {
       fullUrl: true,
