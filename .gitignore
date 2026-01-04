@@ -64,4 +64,5 @@ LEADERBOARD_FIX.md
 
 package-lock.json
 yarn.lock
+# Include pnpm lockfile for CI reproducibility
 pnpm-lock.yaml
