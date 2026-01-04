@@ -653,13 +653,16 @@ submitP2PChallenge(matchId, code, language)
 
 ### Blockchain Integration
 ```typescript
+import { parseUnits, formatUnits } from 'viem';
+import { mintByte } from '@/lib/ethers';
+
 // Automatic on challenge completion:
-const amount = ethers.parseUnits(5, 18); // 5 BYTE tokens
-await byteTokenContract.mint(walletAddress, amount);
+const amount = parseUnits('5', 18); // 5 BYTE tokens
+await mintByte(walletAddress, amount);
 
 // Get balance:
-const balance = await contract.balanceOf(walletAddress);
-const formatted = ethers.formatUnits(balance, 18);
+const balance = await contract.read.balanceOf([walletAddress]);
+const formatted = formatUnits(balance, 18);
 ```
 
 ### Stripe Webhook (`app/api/webhooks/stripe/route.ts`)
