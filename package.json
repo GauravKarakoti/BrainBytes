@@ -16,9 +16,9 @@
     "db:push": "pnpm env:load pnpm drizzle-kit push",
     "db:seed": "pnpm env:load pnpm tsx ./scripts/seed.ts",
     "db:update-users": "pnpm env:load pnpm tsx ./scripts/update-user-data.ts",
-    "test": "vitest"
+    "test": "vitest",
     "test:unit": "vitest -c vitest.config.ts test/**/*.test.{ts,tsx}"
-  ,
+  },
   "dependencies": {
     "@ai-sdk/google": "^2.0.29",
     "@ai-sdk/react": "^2.0.89",

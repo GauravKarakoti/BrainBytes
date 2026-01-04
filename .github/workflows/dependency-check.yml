@@ -109,3 +109,13 @@ jobs:
       - name: Check licenses
         run: pnpm licenses list
         continue-on-error: true
+
+  ensure-no-ethers-in-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Ensure ethers is not a production dependency
+        run: |
+          node -e "const pkg = require('./package.json'); if (pkg.dependencies && pkg.dependencies['ethers']) { console.error('Package "ethers" found in dependencies. Move it to devDependencies or remove it.'); process.exit(1); } console.log('No ethers found in dependencies')"
+
