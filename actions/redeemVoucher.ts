@@ -46,7 +46,7 @@ export async function verifyRedemption(itemId: number, txHash: string) {
   try {
     const receipt = await publicClient.getTransactionReceipt({ hash: txHash })
 
-    if (!receipt || receipt.status?.toString() !== '0x1' && receipt.status !== 1) {
+    if (!receipt || receipt.status !== 'success') {
       return { error: 'Transaction failed or not found.' }
     }
 
