@@ -86,7 +86,11 @@ export async function verifyRedemption(itemId: number, txHash: string) {
             }
           }
         } catch (e) {
-          // continue
+          console.error('Failed to decode event log during redemption verification:', {
+            txHash,
+            log,
+            error: e,
+          });
         }
       }
     }
