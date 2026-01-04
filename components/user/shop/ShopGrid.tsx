@@ -92,8 +92,8 @@ export function ShopItemCard({ item, hearts, points, gems, bytes }: ShopItemCard
             args: [SHOP_WALLET_ADDRESS, amount],
           })
 
-          // `writeContract` can return an object containing a `hash` or the hash directly
-          const txHash = (tx as any)?.hash ?? (tx as any) ?? ''
+          // `writeContract` returns the transaction hash directly
+          const txHash = tx as string
 
           toast.loading('Processing transaction...')
 
