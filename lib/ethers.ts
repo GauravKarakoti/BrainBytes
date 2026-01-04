@@ -29,5 +29,7 @@ export async function readByteBalance(address: Address) {
   return balance as bigint
 }
 
-export const formatUnits = (value: bigint | number | string, decimals = B_DECIMALS) => viemFormatUnits(value as any, decimals)
-export const parseUnitsFn = (value: string, decimals = B_DECIMALS) => viemParseUnits(value, decimals)
+export const formatUnits = (value: bigint, decimals: number = B_DECIMALS) =>
+  viemFormatUnits(value, decimals)
+export const parseUnitsFn = (value: string, decimals: number = B_DECIMALS) =>
+  viemParseUnits(value, decimals)
