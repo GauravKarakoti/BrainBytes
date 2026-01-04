@@ -525,7 +525,7 @@ int main() {
         lessonId: 27,
         type: 'SELECT',
         order: 2,
-        question: 'What method is called when a thread starts execution?',
+        question: 'Which method is used to start a thread\'s execution?',
       },
       // Java - Lesson 28: Synchronization
       {
@@ -1043,7 +1043,7 @@ int main() {
         id: 52,
         challengeId: 22,
         option: 'run()',
-        correct: true,
+        correct: false,
         imageSrc: null,
         audioSrc: null,
       },
@@ -1051,7 +1051,7 @@ int main() {
         id: 53,
         challengeId: 22,
         option: 'start()',
-        correct: false,
+        correct: true,
         imageSrc: null,
         audioSrc: null,
       },
