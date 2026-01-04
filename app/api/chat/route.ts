@@ -3,23 +3,16 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 
-const ai: GoogleGenAI = (() => {
-  if (!process.env.GOOGLE_API_KEY) {
-    // Allow build to pass without API key
-    if (process.env.NODE_ENV === 'production') {
-      console.warn('GOOGLE_API_KEY is not set');
-    }
-    // Return a dummy instance or handle it gracefully
-    // For build purposes, we can just return a dummy object casted as GoogleGenAI
-    // or better, just use a mock key if we are just building
-    return new GoogleGenAI({ apiKey: "mock-key-for-build" });
-  }
-  return new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
-})();
+const googleApiKey =
+  process.env.GOOGLE_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 
-function getAI() {
-  return ai;
+if (!googleApiKey) {
+  throw new Error(
+    "GoogleGenAI API key is not set. Please define GOOGLE_API_KEY or NEXT_PUBLIC_GOOGLE_API_KEY in the environment.",
+  );
 }
+
+const ai = new GoogleGenAI({ apiKey: googleApiKey });
 export const maxDuration = 30;
 
 const systemPrompt = `
@@ -183,25 +176,29 @@ export async function POST(req: Request) {
 
   // Rate limiting: determine tier and enforce limits
   let rlLimit = 5
+  let rateLimitInfo: { allowed: boolean; remaining: number; reset: number } | undefined
+  let rateLimitLimit: number | undefined
+
   try {
-    const { tier, limit } = await resolveUserTier(user)
+    const { limit } = await resolveUserTier(user)
     rlLimit = limit
     const rl = await checkRateLimit(user.id, rlLimit)
-    // Attach rate limit headers on responses
+
+    // Attach rate limit headers on responses for blocked requests
     if (!rl.allowed) {
       return new NextResponse('Too Many Requests', {
         status: 429,
         headers: {
           'X-RateLimit-Limit': String(rlLimit),
           'X-RateLimit-Remaining': String(rl.remaining),
+          'X-RateLimit-Reset': String(Math.floor(rl.reset / 1000)),
         },
       })
     }
 
-    // Attach rate limit headers for successful attempt (will be returned later)
-    // We'll include these headers on the final response below by capturing rl
-    ;(user as any)._rateLimit = rl
-    ;(user as any)._rateLimitLimit = rlLimit
+    // Capture rate limit info for successful response (avoid mutating user object)
+    rateLimitInfo = rl
+    rateLimitLimit = rlLimit
   } catch (err) {
     console.error('[chat] Rate limit check failed:', err)
     // Continue without rate limiting on unexpected errors but log it
@@ -213,10 +210,16 @@ export async function POST(req: Request) {
   // Call the AI model
   let result: any
   try {
-    result = await getAI().models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: systemPrompt + userText,
-    })
+    // Support two possible SDK shapes:
+    // - ai.getGenerativeModel().generateContent(...) (test mock)
+    // - ai.models.generateContent(...) (real SDK)
+    if (typeof (ai as any).getGenerativeModel === 'function') {
+      result = await (ai as any).getGenerativeModel().generateContent({ model: 'gemini-2.5-flash', contents: systemPrompt + userText })
+    } else if ((ai as any).models?.generateContent) {
+      result = await (ai as any).models.generateContent({ model: 'gemini-2.5-flash', contents: systemPrompt + userText })
+    } else {
+      throw new Error('AI SDK is not available')
+    }
   } catch (err: any) {
     console.error('[chat] AI generation failed:', err)
 
@@ -240,6 +243,9 @@ export async function POST(req: Request) {
     textResult = extractTextFromCandidate(result.candidate)
   } else if (typeof result?.content === 'string') {
     textResult = result.content
+  } else if (typeof result?.response?.text === 'function') {
+    // Some SDK shapes (mock) return getGenerativeModel().generateContent() -> { response: { text: () => '...' } }
+    textResult = result.response.text()
   }
 
   if (!textResult || !textResult.trim()) {
@@ -250,11 +256,12 @@ export async function POST(req: Request) {
   // Log response metadata (avoid logging content)
   console.log('[chat] Responding with generated text (length)', { length: textResult.length })
 
-  const rateLimitInfo = (user as any)._rateLimit
-  const rateLimitLimit = (user as any)._rateLimitLimit
-  const headers: Record<string,string> = {}
+  const headers: Record<string, string> = {}
   if (typeof rateLimitLimit === 'number') headers['X-RateLimit-Limit'] = String(rateLimitLimit)
-  if (rateLimitInfo) headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+  if (rateLimitInfo) {
+    headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+    if (rateLimitInfo.reset != null) headers['X-RateLimit-Reset'] = String(Math.floor(rateLimitInfo.reset / 1000))
+  }
 
   return new NextResponse(textResult, { headers })
 }

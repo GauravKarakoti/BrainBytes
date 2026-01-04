@@ -5,13 +5,21 @@ const parseAdminEmails = () =>
     .map((value) => value.trim())
     .filter(Boolean) ?? []
 
-export const getIsAdmin = async () => {
-  const user = await getOptionalUser()
+// Accept an optional user-like object to avoid fetching session again when caller already has the user
+export const getIsAdmin = async (user?: { email?: string } | null) => {
+  let email: string | undefined | null
 
-  if (!user?.email) {
+  if (user && user.email) {
+    email = user.email
+  } else {
+    const _user = await getOptionalUser()
+    email = _user?.email
+  }
+
+  if (!email) {
     return false
   }
 
   const adminEmails = parseAdminEmails()
-  return adminEmails.includes(user.email)
+  return adminEmails.includes(email)
 }

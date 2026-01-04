@@ -6,16 +6,16 @@ import { Button } from '@/components/ui/button'
 import { purchaseWithCurrency } from '@/actions/shop'
 import { verifyRedemption } from '@/actions/redeemVoucher'
 import type { ShopItem } from '@/config/shop'
-import { ethers } from 'ethers'
+import { createWalletClient, createPublicClient, custom, parseUnits, type Address } from 'viem'
 
 const byteTokenAbi = [
-  "function transfer(address to, uint256 amount) returns (bool)",
-  "function allowance(address owner, address spender) returns (uint256)",
-  "function approve(address spender, uint256 amount) returns (bool)"
+  { type: 'function', name: 'transfer', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
+  { type: 'function', name: 'allowance', inputs: [{ name: 'owner', type: 'address' }, { name: 'spender', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+  { type: 'function', name: 'approve', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
 ];
 
-const BYTE_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS!;
-const SHOP_WALLET_ADDRESS = process.env.NEXT_PUBLIC_SHOP_WALLET_ADDRESS!;
+const BYTE_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS as Address;
+const SHOP_WALLET_ADDRESS = process.env.NEXT_PUBLIC_SHOP_WALLET_ADDRESS as Address;
 const B_DECIMALS = 18;
 
 type ShopItemCardProps = {
@@ -70,30 +70,48 @@ export function ShopItemCard({ item, hearts, points, gems, bytes }: ShopItemCard
       setIsLoading(true);
       startTransition(async () => {
         try {
-          const provider = new ethers.BrowserProvider(window.ethereum);
-          const signer = await provider.getSigner();
-          const contract = new ethers.Contract(BYTE_TOKEN_ADDRESS, byteTokenAbi, signer);
-          
-          const amount = ethers.parseUnits(item.byteCost!.toString(), B_DECIMALS);
-          toast.loading("Please approve the transaction in your wallet...");
-          
-          const tx = await contract.transfer(SHOP_WALLET_ADDRESS, amount);
-          
-          toast.loading("Processing transaction...");
-          await tx.wait(); 
+          if (!window.ethereum) throw new Error('No wallet provider')
 
-          const result = await verifyRedemption(item.id, tx.hash);
+          const transport = custom(window.ethereum as any)
+          const walletClient = createWalletClient({ transport })
+          const publicClient = createPublicClient({ transport })
+
+          const amount = parseUnits(item.byteCost!.toString(), B_DECIMALS)
+          toast.loading('Please approve the transaction in your wallet...')
+
+          const tx = await walletClient.writeContract({
+            address: BYTE_TOKEN_ADDRESS,
+            abi: byteTokenAbi as any,
+            functionName: 'transfer',
+            args: [SHOP_WALLET_ADDRESS, amount],
+          })
+
+          // `writeContract` can return an object containing a `hash` or the hash directly
+          const txHash =
+            (tx as { hash?: `0x${string}` } | `0x${string}` | undefined)?.hash ??
+            (tx as `0x${string}` | undefined)
+
+          if (!txHash) {
+            throw new Error('Failed to obtain transaction hash')
+          }
+
+          toast.loading('Processing transaction...')
+
+          // Wait for receipt
+          await publicClient.waitForTransactionReceipt({ hash: txHash })
+
+          const result = await verifyRedemption(item.id, txHash)
 
           if (result.error) {
-            toast.error(result.error);
+            toast.error(result.error)
           } else {
-            toast.success(`${item.title} redeemed successfully!`);
+            toast.success(`${item.title} redeemed successfully!`)
           }
         } catch (err: any) {
-          console.error(err);
-          toast.error(err.reason || err.message || "Transaction failed");
+          console.error(err)
+          toast.error(err.reason || err.message || 'Transaction failed')
         } finally {
-          setIsLoading(false);
+          setIsLoading(false)
         }
       });
     }

@@ -17,12 +17,12 @@ const WINDOW_MS = 60_000 // 1 minute
 const store = new Map<string, { count: number; windowStart: number }>()
 
 export async function resolveUserTier(user: any): Promise<{ tier: Tier; limit: number }> {
-  // Admin check
-  const isAdmin = await getIsAdmin()
+  // Admin check - use the provided user when available to avoid refetching session
+  const isAdmin = await getIsAdmin(user)
   if (isAdmin) return { tier: 'admin', limit: DEFAULT_LIMITS.admin }
 
-  // Premium subscription
-  const sub = await getUserSubscription()
+  // Premium subscription - prefer explicit user id when provided
+  const sub = await getUserSubscription(user?.id)
   if (sub && sub.isActive) return { tier: 'premium', limit: DEFAULT_LIMITS.premium }
 
   return { tier: 'standard', limit: DEFAULT_LIMITS.standard }
