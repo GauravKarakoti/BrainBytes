@@ -86,7 +86,8 @@ export async function verifyRedemption(itemId: number, txHash: string) {
             }
           }
         } catch (e) {
-          // continue
+          console.warn('Failed to decode log in verifyRedemption:', e);
+          // Intentionally continue checking remaining logs
         }
       }
     }
