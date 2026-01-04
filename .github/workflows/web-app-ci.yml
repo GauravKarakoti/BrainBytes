@@ -65,10 +65,45 @@ jobs:
 
       - name: Run linter
         run: pnpm lint
-        continue-on-error: true
-      
+
       - name: Type check
         run: pnpm tsc --noEmit
+
+      - name: Run ESLint with output (detailed)
+        id: eslint
+        run: pnpm lint --format=json --output-file=eslint-report.json || true
+
+      - name: Comment PR with lint results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'eslint-report.json';
+            let errors = 0;
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              errors = report.reduce((acc, file) => acc + file.messages.length, 0);
+            }
+            if (errors > 0) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `⚠️ ESLint found ${errors} issue(s). Please fix them before merging.`
+              });
+            }
+
+      - name: Fail on lint errors
+        run: |
+          if [ -f eslint-report.json ]; then
+            errors=$(node -e "console.log(JSON.parse(require('fs').readFileSync('eslint-report.json','utf8')).reduce((acc,file)=>acc+file.messages.length,0))");
+            echo "Lint errors: $errors";
+            if [ "$errors" -ne "0" ]; then
+              echo "🚨 Lint issues detected, failing CI.";
+              exit 1;
+            fi
+          fi
       
       - name: Build application
         run: pnpm build
