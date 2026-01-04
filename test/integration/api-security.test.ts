@@ -91,19 +91,14 @@ describe('API Security Integration Tests', () => {
       vi.mocked(auth0.getSession).mockResolvedValue({
         user: { sub: 'user-1', name: 'Test User', email: 'test@example.com', picture: 'pic.jpg' }
       } as any)
-      
-      // Mock DB response for user progress if needed (chat might check rate limit which checks DB)
-      // Chat route calls resolveUserTier -> getUserSubscription -> db
-      // We might need to mock more DB calls or mock resolveUserTier
-      
+
       const req = new Request('http://localhost/api/chat', {
         method: 'POST',
         body: JSON.stringify({ messages: [{ role: 'user', content: 'Hello' }] })
       })
-      
-      // We need to mock resolveUserTier and checkRateLimit from '@/lib/rateLimit'
-      // But wait, we didn't mock '@/lib/rateLimit' in the top level mocks.
-      // Let's see if we can mock it here or if we need to add it to top level.
+
+      const response = await postChat(req)
+      expect(response.status).toBe(200)
     })
   })
 
