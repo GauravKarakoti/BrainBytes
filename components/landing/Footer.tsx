@@ -114,7 +114,7 @@ export function Footer() {
         </div>
       </MotionDiv>
       <p className="text-center max-sm:text-sm">
-        © 2025 — BrainBytes by{' '}
+        © {new Date().getFullYear()} — BrainBytes by{' '}
         <a
           href="https://github.com/Oreek"
           target="_blank"

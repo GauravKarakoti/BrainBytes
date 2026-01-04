@@ -124,7 +124,12 @@ function extractTextFromCandidate(candidate: any): string {
 export async function POST(req: Request) {
   // Require authentication before processing chat requests
   // This enables per-user rate limiting and audit logging
-  const user = await requireUser()
+  let user
+  try {
+    user = await requireUser()
+  } catch (error) {
+    return new NextResponse('Unauthorized', { status: 401 })
+  }
 
   // Parse and validate incoming JSON
   let body: any

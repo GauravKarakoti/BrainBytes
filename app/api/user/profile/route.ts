@@ -12,7 +12,12 @@ const FALLBACK_NAME = 'Learner'
 type UserProgressInsert = typeof userProgress.$inferInsert
 
 export async function GET() {
-  const user = await requireUser()
+  let user
+  try {
+    user = await requireUser()
+  } catch (error) {
+    return new NextResponse('Unauthorized', { status: 401 })
+  }
 
   const progress = await getDb().query.userProgress.findFirst({
     where: eq(userProgress.userId, user.id),
