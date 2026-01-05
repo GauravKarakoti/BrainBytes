@@ -7,10 +7,23 @@ import { requireUser } from "@/lib/auth0";
 const returnUrl = process.env.NEXT_PUBLIC_APP_URL + "/shop";
 
 // Subscription pricing configuration from environment variables with defaults
-const SUBSCRIPTION_PRICE_CENTS = parseInt(
-  process.env.STRIPE_SUBSCRIPTION_PRICE_CENTS ?? "2000",
-  10
-);
+const DEFAULT_SUBSCRIPTION_PRICE_CENTS = 2000;
+const SUBSCRIPTION_PRICE_CENTS_ENV = process.env.STRIPE_SUBSCRIPTION_PRICE_CENTS;
+const SUBSCRIPTION_PRICE_CENTS = (() => {
+  if (SUBSCRIPTION_PRICE_CENTS_ENV === undefined) {
+    return DEFAULT_SUBSCRIPTION_PRICE_CENTS;
+  }
+
+  const parsed = Number.parseInt(SUBSCRIPTION_PRICE_CENTS_ENV, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    console.warn(
+      `Invalid STRIPE_SUBSCRIPTION_PRICE_CENTS value "${SUBSCRIPTION_PRICE_CENTS_ENV}", falling back to default ${DEFAULT_SUBSCRIPTION_PRICE_CENTS}.`
+    );
+    return DEFAULT_SUBSCRIPTION_PRICE_CENTS;
+  }
+
+  return parsed;
+})();
 const SUBSCRIPTION_CURRENCY = process.env.STRIPE_SUBSCRIPTION_CURRENCY ?? "USD";
 const rawSubscriptionInterval = process.env.STRIPE_SUBSCRIPTION_INTERVAL;
 const SUBSCRIPTION_INTERVAL: "month" | "year" =
