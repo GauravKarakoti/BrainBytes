@@ -1,3 +1,4 @@
+// app/components/user/SideMenuUserButton.tsx
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
@@ -133,7 +134,11 @@ export function SideMenuUserButton() {
   if (isAuthLoading || (authUser && isProfileLoading)) {
     return (
       <div className="relative flex h-[60px] items-center sm:max-lg:justify-center">
-        <span className="mx-4 size-10 animate-pulse rounded-full bg-loading sm:max-lg:mx-2" />
+        <span 
+          className="mx-4 size-10 animate-pulse rounded-full bg-loading sm:max-lg:mx-2"
+          aria-label="Loading user profile"
+          role="status"
+        />
       </div>
     )
   }
@@ -141,7 +146,11 @@ export function SideMenuUserButton() {
   if (!authUser) {
     return (
       <div className="relative flex h-[60px] items-center sm:max-lg:justify-center">
-        <a href="/api/auth/login" className={triggerClassName}>
+        <a 
+          href="/api/auth/login" 
+          className={triggerClassName}
+          aria-label="Login to BrainBytes"
+        >
           Login
         </a>
       </div>
@@ -152,10 +161,16 @@ export function SideMenuUserButton() {
     <div className="relative flex h-[60px] items-center sm:max-lg:justify-center">
       <Popover open={isPopoverOpen} onOpenChange={setPopoverOpen}>
         <PopoverTrigger asChild>
-          <button type="button" className={triggerClassName}>
+          <button 
+            type="button" 
+            className={triggerClassName}
+            aria-label={`User menu for ${displayName}`}
+            aria-expanded={isPopoverOpen}
+            aria-haspopup="dialog"
+          >
             <Image
               src={displayAvatar}
-              alt={displayName}
+              alt={`Profile picture of ${displayName}`}
               width={40}
               height={40}
               className="size-10 rounded-full border border-border object-cover"
@@ -172,12 +187,17 @@ export function SideMenuUserButton() {
             </span>
           </button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-80 p-0">
+        <PopoverContent 
+          align="start" 
+          className="w-80 p-0"
+          role="dialog"
+          aria-label="User profile menu"
+        >
           <div className="space-y-4 p-4">
             <div className="flex items-center gap-3">
               <Image
                 src={displayAvatar}
-                alt={displayName}
+                alt={`Profile picture of ${displayName}`}
                 width={48}
                 height={48}
                 className="size-12 rounded-full border border-border object-cover"
@@ -194,6 +214,8 @@ export function SideMenuUserButton() {
                 <div
                   key={label}
                   className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm"
+                  role="status"
+                  aria-label={`${label}: ${value}`}
                 >
                   <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
                   <div className="space-y-1">
@@ -209,6 +231,7 @@ export function SideMenuUserButton() {
               size="sm"
               className="w-full justify-start gap-2"
               onClick={handleCopyId}
+              aria-label="Copy user ID to clipboard"
             >
               <Copy className="size-4" aria-hidden="true" />
               Copy user ID
@@ -224,17 +247,28 @@ export function SideMenuUserButton() {
                 setDialogOpen(true)
                 setPopoverOpen(false)
               }}
+              aria-label="Open profile and preferences settings"
             >
               <Settings className="size-4" aria-hidden="true" />
               Profile & preferences
             </Button>
-            <Button variant="ghost" className="w-full justify-start gap-2" asChild>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start gap-2" 
+              asChild
+              aria-label="Go to dashboard"
+            >
               <NextLink href="/learn">
                 <Gauge className="size-4" aria-hidden="true" />
                 Go to dashboard
               </NextLink>
             </Button>
-            <Button variant="danger" className="w-full justify-start gap-2" asChild>
+            <Button 
+              variant="danger" 
+              className="w-full justify-start gap-2" 
+              asChild
+              aria-label="Logout from BrainBytes"
+            >
               <a href="/api/auth/logout">
                 <LogOut className="size-4" aria-hidden="true" />
                 Logout
@@ -244,10 +278,13 @@ export function SideMenuUserButton() {
         </PopoverContent>
       </Popover>
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent 
+          aria-labelledby="dialog-title"
+          aria-describedby="dialog-description"
+        >
           <DialogHeader>
-            <DialogTitle>Profile & preferences</DialogTitle>
-            <DialogDescription>
+            <DialogTitle id="dialog-title">Profile & preferences</DialogTitle>
+            <DialogDescription id="dialog-description">
               Personalise how your profile appears across BrainBytes.
             </DialogDescription>
           </DialogHeader>
@@ -261,23 +298,32 @@ export function SideMenuUserButton() {
                 className="size-16 rounded-full border border-border object-cover"
               />
               <div className="flex-1 space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <label 
+                  htmlFor="display-name-input"
+                  className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                >
                   Display name
                 </label>
                 <Input
+                  id="display-name-input"
                   value={displayNameInput}
                   onChange={(event) => setDisplayNameInput(event.target.value)}
                   placeholder="Your name"
                   maxLength={60}
                   required
+                  aria-required="true"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <label 
+                htmlFor="avatar-url-input"
+                className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Avatar URL
               </label>
               <Input
+                id="avatar-url-input"
                 value={avatarInput}
                 onChange={(event) => setAvatarInput(event.target.value)}
                 placeholder="https://example.com/avatar.png"
@@ -293,6 +339,7 @@ export function SideMenuUserButton() {
                 className="justify-start"
                 onClick={() => setAvatarInput('')}
                 disabled={isSaving}
+                aria-label="Use default Auth0 avatar"
               >
                 Use Auth0 avatar
               </Button>
@@ -302,10 +349,16 @@ export function SideMenuUserButton() {
                   variant="ghost"
                   onClick={() => setDialogOpen(false)}
                   disabled={isSaving}
+                  aria-label="Cancel profile changes"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" disabled={isSaving}>
+                <Button 
+                  type="submit" 
+                  variant="primary" 
+                  disabled={isSaving}
+                  aria-label="Save profile changes"
+                >
                   {isSaving ? 'Saving...' : 'Save changes'}
                 </Button>
               </div>
