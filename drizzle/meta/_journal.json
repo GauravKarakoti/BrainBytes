@@ -43,6 +43,20 @@
       "when": 1762645214575,
       "tag": "0005_small_lester",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1767617249553,
+      "tag": "0006_clean_titanium_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1767625128855,
+      "tag": "0007_thankful_dark_phoenix",
+      "breakpoints": true
     }
   ]
 }

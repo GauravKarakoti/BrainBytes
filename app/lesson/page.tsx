@@ -1,11 +1,13 @@
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { getLesson, getLessonPercentage } from '@/db/queries/lessons'
 import { getUserProgress } from '@/db/queries/userProgress'
 import { getCourseProgress } from '@/db/queries/units'
 import { LessonClient } from './LessonClient'
 import { requireUser } from '@/lib/auth0'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
-export default async function LessonPage() {
+async function LessonContent() {
   const user = await requireUser()
   const userId = user.id
 
@@ -26,10 +28,18 @@ export default async function LessonPage() {
   }
 
   return (
-    <LessonClient 
-      lesson={lesson} 
-      initialHearts={userProgress.hearts} 
-      initialPercentage={percentage} 
+    <LessonClient
+      lesson={lesson}
+      initialHearts={userProgress.hearts}
+      initialPercentage={percentage}
     />
+  )
+}
+
+export default function LessonPage() {
+  return (
+    <Suspense fallback={<LoadingIndicator message="Loading lesson…" />}>
+      <LessonContent />
+    </Suspense>
   )
 }
