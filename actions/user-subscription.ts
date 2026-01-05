@@ -25,7 +25,7 @@ const SUBSCRIPTION_PRICE_CENTS = (() => {
   return parsed;
 })();
 const RAW_SUBSCRIPTION_CURRENCY =
-  process.env.STRIPE_SUBSCRIPTION_CURRENCY ?? "INR";
+  process.env.STRIPE_SUBSCRIPTION_CURRENCY ?? "USD";
 const SUBSCRIPTION_CURRENCY = (() => {
   const normalized = RAW_SUBSCRIPTION_CURRENCY.toLowerCase();
   // Basic validation: must be a 3-letter ISO-style currency code
