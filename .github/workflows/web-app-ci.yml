@@ -79,12 +79,49 @@ jobs:
               const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
               errors = report.reduce((acc, file) => acc + file.messages.length, 0);
             }
+            const uniqueMarker = '<!-- eslint-lint-report -->';
+            
+            // Fetch existing comments on the PR to find a previous lint report comment (if any)
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            
+            const existingComment = comments.find(
+              (comment) =>
+                comment.user &&
+                comment.user.type === 'Bot' &&
+                typeof comment.body === 'string' &&
+                comment.body.includes(uniqueMarker)
+            );
+            
             if (errors > 0) {
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
+              const body = `${uniqueMarker}
+⚠️ ESLint found ${errors} issue(s). Please fix them before merging.`;
+              
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  comment_id: existingComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body
+                });
+              }
+            } else if (existingComment) {
+              // No errors now: remove any existing lint report comment to avoid stale information
+              await github.rest.issues.deleteComment({
+                comment_id: existingComment.id,
                 owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `⚠️ ESLint found ${errors} issue(s). Please fix them before merging.`
+                repo: context.repo.repo
               });
             }
 
