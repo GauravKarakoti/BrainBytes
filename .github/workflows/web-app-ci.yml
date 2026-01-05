@@ -111,26 +111,26 @@ jobs:
               } else {
                 await github.rest.issues.createComment({
                   issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body
-                });
-              }
-            } else if (existingComment) {
-              // No errors now: remove any existing lint report comment to avoid stale information
-              await github.rest.issues.deleteComment({
-                comment_id: existingComment.id,
+            let issueCount = 0;
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              issueCount = report.reduce((acc, file) => acc + file.messages.length, 0);
+            }
+            if (issueCount > 0) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
                 owner: context.repo.owner,
-                repo: context.repo.repo
+                repo: context.repo.repo,
+                body: `⚠️ ESLint found ${issueCount} issue(s). Please fix them before merging.`
               });
             }
 
       - name: Fail on lint errors
         run: |
           if [ -f eslint-report.json ]; then
-            errors=$(node -e "console.log(JSON.parse(require('fs').readFileSync('eslint-report.json','utf8')).reduce((acc,file)=>acc+file.messages.length,0))");
-            echo "Lint errors: $errors";
-            if [ "$errors" -ne "0" ]; then
+            issueCount=$(node -e "console.log(JSON.parse(require('fs').readFileSync('eslint-report.json','utf8')).reduce((acc,file)=>acc+file.messages.length,0))");
+            echo "Lint issues: $issueCount";
+            if [ "$issueCount" -ne "0" ]; then
               echo "🚨 Lint issues detected, failing CI.";
               exit 1;
             fi
