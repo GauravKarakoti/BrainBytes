@@ -45,13 +45,19 @@ export const getUserSubscription = async () => {
 
   if (!data) return null;
 
-  const isActive =
+  const isStripeActive =
+    !data.isCryptoSubscription &&
     data.stripePriceId &&
     data.stripeCurrentPeriodEnd &&
     data.stripeCurrentPeriodEnd.getTime() + 86_400_000 > Date.now();
 
+  const isCryptoActive =
+    data.isCryptoSubscription &&
+    data.cryptoCurrentPeriodEnd &&
+    data.cryptoCurrentPeriodEnd.getTime() + 86_400_000 > Date.now();
+
   return {
     ...data,
-    isActive: !!isActive,
+    isActive: !!isStripeActive || !!isCryptoActive,
   };
 };
