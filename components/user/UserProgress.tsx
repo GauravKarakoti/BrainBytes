@@ -2,15 +2,16 @@ import NextLink from 'next/link'
 import NextImage from 'next/image'
 import { InfinityIcon, Ban } from 'lucide-react'
 import { getLevelFromPoints } from '@/config/levels'
-import { getUserProgress } from '@/db/queries/userProgress'
+import { getUserProgress, getUserSubscription } from '@/db/queries/userProgress'
 
 type UserProgressProps = {
-  hasActiveSubscription?: boolean
   plain?: boolean
 }
 
-export async function UserProgress({ hasActiveSubscription, plain }: UserProgressProps) {
+export async function UserProgress({ plain }: UserProgressProps) {
   const userProgress = await getUserProgress()
+  const userSubscription = await getUserSubscription()
+  const subscriptionActive = userSubscription?.isActive ?? false
   const { points = 0, hearts = 0, activeCourse } = userProgress ?? {}
   const { level, title: levelTitle } = getLevelFromPoints(points)
   const { title = 'Select course', altCode } = activeCourse ?? {}
@@ -67,7 +68,7 @@ export async function UserProgress({ hasActiveSubscription, plain }: UserProgres
         <div className="flex flex-col">
           <span className="text-xs uppercase tracking-wide opacity-70">Hearts</span>
           <span className="font-semibold leading-tight">
-            {hasActiveSubscription ? <InfinityIcon className="size-4" strokeWidth={3} /> : hearts}
+            {subscriptionActive ? <InfinityIcon className="size-4" strokeWidth={3} /> : hearts}
           </span>
         </div>
       </NextLink>
