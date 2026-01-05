@@ -12,7 +12,8 @@ const provider = new ethers.JsonRpcProvider(RPC_PROVIDER_URL);
 const serverWallet = new ethers.Wallet(SERVER_WALLET_PRIVATE_KEY, provider);
 
 const byteTokenAbi = [
-  "function mint(address to, uint256 amount)"
+  "function mint(address to, uint256 amount)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)"
 ];
 
 export const byteTokenContract = new ethers.Contract(BYTE_TOKEN_ADDRESS, byteTokenAbi, serverWallet);
