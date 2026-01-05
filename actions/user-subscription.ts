@@ -6,6 +6,15 @@ import { requireUser } from "@/lib/auth0";
 
 const returnUrl = process.env.NEXT_PUBLIC_APP_URL + "/shop";
 
+// Subscription pricing configuration - use environment variable or default
+const SUBSCRIPTION_PRICE_CENTS = parseInt(
+  process.env.STRIPE_SUBSCRIPTION_PRICE_CENTS ?? "2000",
+  10
+);
+const SUBSCRIPTION_CURRENCY = process.env.STRIPE_SUBSCRIPTION_CURRENCY ?? "USD";
+const SUBSCRIPTION_INTERVAL =
+  (process.env.STRIPE_SUBSCRIPTION_INTERVAL as "month" | "year") ?? "month";
+
 export const createStripeUrl = async () => {
   const user = await requireUser();
   const userId = user.id;
@@ -28,18 +37,18 @@ export const createStripeUrl = async () => {
   const stripeSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
-  customer_email: user.email,
+    customer_email: user.email,
     line_items: [
       {
         price_data: {
-          currency: "USD",
+          currency: SUBSCRIPTION_CURRENCY,
           product_data: {
             name: "BrainBytes Pro",
             description: "Unlimited Hearts",
           },
-          unit_amount: 2000, // $20.00
+          unit_amount: SUBSCRIPTION_PRICE_CENTS,
           recurring: {
-            interval: "month",
+            interval: SUBSCRIPTION_INTERVAL,
           },
         },
         quantity: 1,
