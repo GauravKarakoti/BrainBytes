@@ -58,13 +58,14 @@ export function Footer() {
               <Asterisk className="h-[1.5em] w-[1.5em]" aria-hidden="true" strokeWidth={2.25} />
             </p>
           </div>
-          <a
-            className="flex items-center justify-end px-4 py-2 text-center font-semibold uppercase opacity-70 before:content-['@_'] after:content-['_*'] hover:opacity-100 sm:px-12 md:py-4 lg:text-2xl"
-            href="https://github.com/GauravKarakoti/BrainBytes"
-            target="_blank"
-          >
-            Github
-          </a>
+<a
+  href="https://github.com/GauravKarakoti/BrainBytes"
+  target="_blank"
+  aria-label="Visit BrainBytes GitHub repository"
+>
+  Github
+</a>
+
         </div>
         <div className="flex-grow select-none overflow-hidden">
           <AnimatedTitle className="md:absolute md:-bottom-1/4 md:left-0 md:translate-x-0">
@@ -90,18 +91,30 @@ export function Footer() {
               <StartCTA />
             </div>
           ) : user ? (
-            <NextLink href="/learn" className="rounded-full">
-              <StartCTA />
-            </NextLink>
+            <NextLink
+  href="/learn"
+  className="rounded-full"
+  aria-label="Start learning"
+>
+  <StartCTA />
+</NextLink>
+
           ) : (
-            <a href="/api/auth/login?screen_hint=signup" className="rounded-full">
-              <StartCTA />
-            </a>
+            <a
+  href="/api/auth/login?screen_hint=signup"
+  className="rounded-full"
+  aria-label="Create account and start learning"
+>
+  <StartCTA />
+</a>
+
+
+
           )}
         </div>
       </MotionDiv>
       <p className="text-center max-sm:text-sm">
-        © 2025 — BrainBytes by{' '}
+        © {new Date().getFullYear()} — BrainBytes by{' '}
         <a
           href="https://github.com/Oreek"
           target="_blank"

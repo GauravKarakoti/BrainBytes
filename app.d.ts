@@ -10,7 +10,7 @@ declare global {
     interface ProcessEnv {
       STRIPE_API_SECRET_KEY: string;
       STRIPE_WEBHOOK_SECRET: string;
-      CLERK_ADMIN_IDS: string;
+      AUTH0_ADMIN_IDS: string;
     }
   }
 }

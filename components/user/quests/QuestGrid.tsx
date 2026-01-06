@@ -41,7 +41,7 @@ export function QuestCard({ quest }: QuestCardProps) {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border-2 bg-card p-6 transition-all hover:shadow-lg ${
+      className={`relative overflow-hidden rounded-xl border-2 bg-card p-4 md:p-6 transition-all hover:shadow-lg ${
         isCompleted ? 'opacity-75' : ''
       }`}
     >
@@ -52,7 +52,7 @@ export function QuestCard({ quest }: QuestCardProps) {
       )}
 
       <div className="mb-4 flex items-center justify-between">
-        <div className="text-5xl">{quest.icon}</div>
+        <div className="text-3xl md:text-5xl">{quest.icon}</div>
         <div
           className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase ${getTypeColor(
             quest.type,
@@ -63,7 +63,7 @@ export function QuestCard({ quest }: QuestCardProps) {
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-xl font-bold">{quest.title}</h3>
+        <h3 className="text-lg md:text-xl font-bold">{quest.title}</h3>
         <p className="text-sm text-muted-foreground">{quest.description}</p>
       </div>
 

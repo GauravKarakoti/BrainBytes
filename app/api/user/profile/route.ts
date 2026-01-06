@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { eq } from 'drizzle-orm'
 
-import { db } from '@/db/drizzle'
+import { getDb } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { requireUser } from '@/lib/auth0'
 
@@ -12,9 +12,14 @@ const FALLBACK_NAME = 'Learner'
 type UserProgressInsert = typeof userProgress.$inferInsert
 
 export async function GET() {
-  const user = await requireUser()
+  let user
+  try {
+    user = await requireUser()
+  } catch (error) {
+    return new NextResponse('Unauthorized', { status: 401 })
+  }
 
-  const progress = await db.query.userProgress.findFirst({
+  const progress = await getDb().query.userProgress.findFirst({
     where: eq(userProgress.userId, user.id),
   })
 
@@ -80,7 +85,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: (error as Error).message }, { status: 400 })
   }
 
-  const existingProgress = await db.query.userProgress.findFirst({
+  const existingProgress = await getDb().query.userProgress.findFirst({
     where: eq(userProgress.userId, user.id),
   })
 
@@ -95,12 +100,12 @@ export async function PATCH(request: Request) {
       updateData.userImgSrc = avatarUrl
     }
 
-    await db.update(userProgress).set(updateData).where(eq(userProgress.userId, user.id))
+    await getDb().update(userProgress).set(updateData).where(eq(userProgress.userId, user.id))
   } else {
     const computedAvatar =
       typeof avatarUrl === 'string' ? avatarUrl : user.picture ?? FALLBACK_AVATAR
 
-    await db.insert(userProgress).values({
+    await getDb().insert(userProgress).values({
       userId: user.id,
       userName: rawName || FALLBACK_NAME,
       userImgSrc: computedAvatar,
@@ -110,7 +115,7 @@ export async function PATCH(request: Request) {
   revalidateTag('get_user_progress')
   revalidateTag(`get_user_progress::${user.id}`)
 
-  const updatedProgress = await db.query.userProgress.findFirst({
+  const updatedProgress = await getDb().query.userProgress.findFirst({
     where: eq(userProgress.userId, user.id),
   })
 

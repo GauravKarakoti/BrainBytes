@@ -275,9 +275,9 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
             <p className="text-sm text-muted-foreground">Progress: {opponentCodeLength} characters</p>
         </div>
 
-        <div className="h-[400px] border rounded-lg overflow-hidden">
+        <div className="h-[300px] md:h-[400px] border rounded-lg overflow-hidden">
           <Editor
-            height="400px"
+            height="100%"
             language={language}
             theme={document.documentElement.classList.contains('dark') ? 'vs-dark' : 'light'}
             value={code}

@@ -34,18 +34,18 @@ export function LeaderboardItem({
 
   return (
     <div
-      className={`flex items-center gap-4 rounded-lg p-4 transition-colors hover:bg-muted/50 ${
+      className={`flex items-center gap-3 md:gap-4 rounded-lg p-3 md:p-4 transition-colors hover:bg-muted/50 ${
         isCurrentUser ? 'bg-primary/10 ring-2 ring-primary/50' : ''
       }`}
     >
-      <div className={`min-w-[3rem] text-center text-2xl font-bold ${getRankColor(rank)}`}>
+      <div className={`min-w-[2.5rem] md:min-w-[3rem] text-center text-lg md:text-2xl font-bold ${getRankColor(rank)}`}>
         {getRankBadge(rank)}
       </div>
-      <div className="relative size-12 overflow-hidden rounded-full border-2 border-border">
+      <div className="relative size-10 md:size-12 overflow-hidden rounded-full border-2 border-border">
         <NextImage src={userImgSrc} alt={userName} fill className="object-cover" />
       </div>
-      <div className="flex-1">
-        <p className={`font-semibold ${isCurrentUser ? 'text-primary' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <p className={`font-semibold truncate ${isCurrentUser ? 'text-primary' : ''}`}>
           {userName}
           {isCurrentUser && <span className="ml-2 text-xs text-muted-foreground">(You)</span>}
         </p>

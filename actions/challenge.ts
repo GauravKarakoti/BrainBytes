@@ -36,7 +36,6 @@ export async function upsertChallengeProgress(challengeId: number) {
   if (!currentUserProgress) {
     console.log('[upsertChallengeProgress] Creating user progress for user:', userId)
     
-    // Get the current user from Clerk to populate name and image
     // Get the first available course
     const firstCourse = await db.query.courses.findFirst()
     

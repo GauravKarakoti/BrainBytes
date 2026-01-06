@@ -133,27 +133,28 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-2xl">❤️</span>
           <span className="text-xl font-bold">{hearts}</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {isCorrect === null ? (
             <Button
               onClick={handleCheck}
               disabled={selectedOption === null || isPending}
               variant="primary"
               size="lg"
+              className="w-full sm:w-auto"
             >
               Check Answer
             </Button>
           ) : isCorrect ? (
-            <Button onClick={handleContinue} disabled={isPending} variant="primary" size="lg">
+            <Button onClick={handleContinue} disabled={isPending} variant="primary" size="lg" className="w-full sm:w-auto">
               Continue
             </Button>
           ) : (
-            <Button onClick={handleContinue} variant="ghost" size="lg">
+            <Button onClick={handleContinue} variant="ghost" size="lg" className="w-full sm:w-auto">
               Try Again
             </Button>
           )}

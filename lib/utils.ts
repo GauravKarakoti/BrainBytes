@@ -6,5 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getMetadataRootURL() {
-  return new URL(`${process.env.NEXT_PUBLIC_APP_URL}`)
+  return new URL(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}`)
 }
+
