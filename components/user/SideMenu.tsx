@@ -1,11 +1,15 @@
-import NextLink from 'next/link'
-import { SideMenuItem } from '@/components/user/SideMenuItem'
-import { SideMenuThemeButton } from '@/components/user/SideMenuThemeButton'
-import { SideMenuUserButton } from '@/components/user/SideMenuUserButton'
+"use client";
 
-import LogoSVG from '@/public/logo.svg'
+import NextLink from "next/link";
+import { SideMenuItem } from "@/components/user/SideMenuItem";
+import { SideMenuThemeButton } from "@/components/user/SideMenuThemeButton";
+import { SideMenuUserButton } from "@/components/user/SideMenuUserButton";
+import LogoSVG from "@/public/logo.svg";
+import { useDashboardNavEnabled } from "@/hooks/useDashboardNavEnabled";
 
 export function SideMenu() {
+  const { navEnabled } = useDashboardNavEnabled();
+
   return (
     <div className="flex h-full flex-col justify-between pt-6">
       <nav className="flex flex-col gap-6 px-4 sm:max-lg:px-2">
@@ -24,11 +28,36 @@ export function SideMenu() {
         </NextLink>
         <ul className="flex flex-col gap-y-2">
           <SideMenuItem href="/learn" icon="learn" label="Learn" />
-          <SideMenuItem href="/leaderboard" icon="leaderboard" label="Leaderboard" />
-          <SideMenuItem href="/quests" icon="quests" label="Quests" />
-          <SideMenuItem href="/forum" icon="forum" label="Forum" />
-          <SideMenuItem href="/compete" icon="code" label="Compete" />
-          <SideMenuItem href="/shop" icon="shop" label="Shop" />
+          <SideMenuItem
+            href="/leaderboard"
+            icon="leaderboard"
+            label="Leaderboard"
+            disabled={!navEnabled}
+          />
+          <SideMenuItem
+            href="/quests"
+            icon="quests"
+            label="Quests"
+            disabled={!navEnabled}
+          />
+          <SideMenuItem
+            href="/forum"
+            icon="forum"
+            label="Forum"
+            disabled={!navEnabled}
+          />
+          <SideMenuItem
+            href="/compete"
+            icon="code"
+            label="Compete"
+            disabled={!navEnabled}
+          />
+          <SideMenuItem
+            href="/shop"
+            icon="shop"
+            label="Shop"
+            disabled={!navEnabled}
+          />
         </ul>
       </nav>
       <div className="space-y-2 border-t-2 px-4 pb-2 pt-2 sm:max-lg:px-2">
@@ -36,5 +65,5 @@ export function SideMenu() {
         <SideMenuUserButton />
       </div>
     </div>
-  )
+  );
 }

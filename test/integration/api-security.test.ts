@@ -25,11 +25,11 @@ vi.mock('@/db/drizzle', () => ({
 
 vi.mock('@google/genai', () => ({
   GoogleGenAI: vi.fn().mockImplementation(() => ({
-    getGenerativeModel: vi.fn().mockReturnValue({
+    models: {
       generateContent: vi.fn().mockResolvedValue({
-        response: { text: () => 'Mock AI response' }
+        text: 'Mock AI response'
       })
-    })
+    }
   }))
 }))
 
