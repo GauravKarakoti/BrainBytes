@@ -1,25 +1,48 @@
 import { drizzle } from 'drizzle-orm/neon-http'
 import { neon } from '@neondatabase/serverless'
+import { sql } from 'drizzle-orm'
 
 import * as schema from '@/db/schema'
-import { QUESTS } from '@/config/quests' 
+import { QUESTS } from '@/config/quests'
 
-const sql = neon(process.env.DATABASE_URL!)
+// Support both Neon (PostgreSQL) and local SQLite for testing
+let db: any
 
-const db = drizzle(sql, { schema, logger: true })
+const initializeDatabase = async () => {
+  const dbUrl = process.env.DATABASE_URL
+
+  if (!dbUrl) {
+    throw new Error(
+      'DATABASE_URL is not set. Please create a .env file with DATABASE_URL.'
+    )
+  }
+
+  // Check if using SQLite (local file)
+  if (dbUrl.startsWith('file:')) {
+    // For SQLite support during development
+    console.log('📦 Using SQLite (local development)')
+    // In production, use the Neon database
+    // For now, we'll skip SQLite support and require Neon
+    throw new Error(
+      'SQLite not supported. Please use a Neon PostgreSQL database.'
+    )
+  } else {
+    // Use Neon PostgreSQL
+    const sqlClient = neon(dbUrl)
+    db = drizzle(sqlClient, { schema, logger: true })
+  }
+
+  return db
+}
 
 const main = async () => {
   try {
+    const database = await initializeDatabase()
+
     console.log('🚧 [DB]: Seeding database...')
 
-    await db.delete(schema.challengeOptions)
-    await db.delete(schema.challenges)
-    await db.delete(schema.lessons)
-    await db.delete(schema.units)
-    await db.delete(schema.quests)
-    await db.delete(schema.courses)
-
-    await db.insert(schema.courses).values([
+    console.log('Seeding courses...')
+    await database.insert(schema.courses).values([
       {
         id: 1,
         title: 'Python',
@@ -41,9 +64,15 @@ const main = async () => {
         altCode: 'java',
       },
       
-    ])
+    ]).onConflictDoUpdate({
+      target: schema.courses.id,
+      set: {
+        title: sql`excluded.title`,
+        altCode: sql`excluded.alt_code`,
+      },
+    })
 
-    await db.insert(schema.units).values([
+    await database.insert(schema.units).values([
       // Python Units
       {
         id: 1,
@@ -119,9 +148,18 @@ const main = async () => {
         courseId: 4,
         order: 3,
       },
-    ])
+    ]).onConflictDoUpdate({
+      target: schema.units.id,
+      set: {
+        title: sql`excluded.title`,
+        description: sql`excluded.description`,
+        courseId: sql`excluded.course_id`,
+        order: sql`excluded."order"`,
+      },
+    })
 
-    await db.insert(schema.lessons).values([
+    console.log('Seeding lessons...')
+    await database.insert(schema.lessons).values([
       // Python - Unit 1
       {
         id: 1,
@@ -306,8 +344,16 @@ const main = async () => {
         order: 3,
         title: 'Concurrent Collections',
       },
-    ])
+    ]).onConflictDoUpdate({
+      target: schema.lessons.id,
+      set: {
+        unitId: sql`excluded.unit_id`,
+        order: sql`excluded."order"`,
+        title: sql`excluded.title`,
+      },
+    })
 
+    console.log('Seeding challenges...')
     const reverseStringTestCases = [
       { input: 'hello', output: 'olleh' },
       { input: 'world', output: 'dlrow' },
@@ -388,7 +434,8 @@ int main() {
     return 0;
 }`
 
-    await db.insert(schema.challenges).values([
+    console.log('Seeding challenges...')
+    await database.insert(schema.challenges).values([
       // Python - Lesson 1: Array Basics
       {
         id: 1,
@@ -607,9 +654,24 @@ int main() {
         stubCodeCpp: cppStub,
         testCases: reverseStringTestCases,
       },
-    ])
+    ]).onConflictDoUpdate({
+      target: schema.challenges.id,
+      set: {
+        lessonId: sql`excluded.lesson_id`,
+        type: sql`excluded.type`,
+        order: sql`excluded."order"`,
+        question: sql`excluded.question`,
+        problemDescription: sql`excluded.problem_description`,
+        stubCodePy: sql`excluded.stub_code_py`,
+        stubCodeJs: sql`excluded.stub_code_js`,
+        stubCodeJava: sql`excluded.stub_code_java`,
+        stubCodeCpp: sql`excluded.stub_code_cpp`,
+        testCases: sql`excluded.test_cases`,
+      },
+    })
 
-    await db.insert(schema.challengeOptions).values([
+    console.log('Seeding challenge options...')
+    await database.insert(schema.challengeOptions).values([
       // Challenge 1: Array access complexity
       {
         id: 1,
@@ -1160,10 +1222,20 @@ int main() {
         imageSrc: null,
         audioSrc: null,
       },
-    ])
+    ]).onConflictDoUpdate({
+      target: schema.challengeOptions.id,
+      set: {
+        challengeId: sql`excluded.challenge_id`,
+        option: sql`excluded.option`,
+        correct: sql`excluded.correct`,
+        imageSrc: sql`excluded.image_src`,
+        audioSrc: sql`excluded.audio_src`,
+      },
+    })
 
     console.log('Seeding quests...')
     const questsData = QUESTS.map((quest) => ({
+      id: quest.id,
       title: quest.title,
       description: quest.description,
       icon: quest.icon,
@@ -1173,7 +1245,18 @@ int main() {
       type: quest.type,
     }))
 
-    await db.insert(schema.quests).values(questsData)
+    await database.insert(schema.quests).values(questsData).onConflictDoUpdate({
+      target: schema.quests.id,
+      set: {
+        title: sql`excluded.title`,
+        description: sql`excluded.description`,
+        icon: sql`excluded.icon`,
+        target: sql`excluded.target`,
+        rewardPoints: sql`excluded.reward_points`,
+        rewardGems: sql`excluded.reward_gems`,
+        type: sql`excluded.type`,
+      },
+    })
 
     console.log('✅ [DB]: Seeded 100%!')
   } catch (error) {
