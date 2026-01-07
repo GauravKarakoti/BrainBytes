@@ -1,3 +1,8 @@
+// app/components/user/SideMenu.tsx
+import NextLink from 'next/link'
+import { SideMenuItem } from '@/components/user/SideMenuItem'
+import { SideMenuThemeButton } from '@/components/user/SideMenuThemeButton'
+import { SideMenuUserButton } from '@/components/user/SideMenuUserButton'
 "use client";
 
 import NextLink from "next/link";
@@ -12,10 +17,14 @@ export function SideMenu() {
 
   return (
     <div className="flex h-full flex-col justify-between pt-6">
-      <nav className="flex flex-col gap-6 px-4 sm:max-lg:px-2">
+      <nav 
+        className="flex flex-col gap-6 px-4 sm:max-lg:px-2"
+        aria-label="Main navigation"
+      >
         <NextLink
           href="/learn"
           className="focus-visible self-start rounded-xl max-sm:ml-4 sm:max-lg:self-center lg:ml-4"
+          aria-label="BrainBytes Home"
         >
           <span className="hidden sm:max-lg:block">
             <LogoSVG className="w-10 hover:animate-bounce" />
@@ -26,7 +35,11 @@ export function SideMenu() {
             </span>
           </span>
         </NextLink>
-        <ul className="flex flex-col gap-y-2">
+        <ul 
+          className="flex flex-col gap-y-2"
+          role="menu"
+          aria-label="Navigation menu"
+        >
           <SideMenuItem href="/learn" icon="learn" label="Learn" />
           <SideMenuItem
             href="/leaderboard"
@@ -60,7 +73,10 @@ export function SideMenu() {
           />
         </ul>
       </nav>
-      <div className="space-y-2 border-t-2 px-4 pb-2 pt-2 sm:max-lg:px-2">
+      <div 
+        className="space-y-2 border-t-2 px-4 pb-2 pt-2 sm:max-lg:px-2"
+        aria-label="User settings"
+      >
         <SideMenuThemeButton />
         <SideMenuUserButton />
       </div>
