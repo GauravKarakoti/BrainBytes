@@ -4,6 +4,7 @@ import Image from 'next/image'
 import NextLink from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme/toggle'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { useUserProfile } from '@/lib/hooks/useUserProfile'
 
 import LogoSVG from '@/public/logo.svg'
@@ -32,6 +33,7 @@ export function Header() {
             </a>
           </Button>
           <ThemeToggle />
+          <LanguageSwitcher />
         </div>
         <NextLink
           href="/"

@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from 'react'
 import type { Variants } from 'framer-motion'
 import NextLink from 'next/link'
 import { useUser } from '@auth0/nextjs-auth0/client'
@@ -34,15 +35,51 @@ const item = {
 
 export function Hero() {
   const { user, isLoading } = useUser()
+  const [locale, setLocale] = useState('en')
+  const [translations, setTranslations] = useState<any>(null)
+
+  useEffect(() => {
+    const savedLocale = localStorage.getItem('locale') || 'en'
+    setLocale(savedLocale)
+
+    // Load translations
+    import(`@/messages/${savedLocale}.json`).then(mod => {
+      setTranslations(mod.default)
+    })
+
+    // Listen for locale changes
+    const handleLocaleChange = (e: Event) => {
+      const event = e as CustomEvent
+      const newLocale = event.detail
+      setLocale(newLocale)
+      import(`@/messages/${newLocale}.json`).then(mod => {
+        setTranslations(mod.default)
+      })
+    }
+
+    window.addEventListener('localeChange', handleLocaleChange)
+    return () => window.removeEventListener('localeChange', handleLocaleChange)
+  }, [])
+
+  if (!translations) return null
+
+  const t = (key: string) => {
+    const keys = key.split('.')
+    let value: any = translations
+    for (const k of keys) {
+      value = value?.[k]
+    }
+    return value || key
+  }
 
   return (
     <section className="relative overflow-hidden px-4 pb-8 pt-32 lg:pt-24">
       <AnimatedTitle>
         <h1 className="flex w-full flex-col items-center justify-center gap-2 text-balance py-6 text-center font-display text-3xl font-bold capitalize leading-normal tracking-tighter sm:text-4xl sm:leading-snug md:gap-4 md:text-6xl">
           <span>
-            Master{' '}
+            {t('landing.masterProgramming')}{' '}
             <span className="rounded-full border border-highlight/25 bg-highlight/50 px-[0.35em] py-[0.125em] text-highlight-depth dark:bg-highlight/85 dark:text-background">
-              Programming
+              {t('landing.programming')}
             </span>
           </span>
           <span className="flex flex-wrap items-center justify-center">
@@ -53,14 +90,14 @@ export function Hero() {
                 strokeWidth={2.15}
               />
             </span>
-            <span className="lowercase ml-[0.25em]">any language.</span>
+            <span className="lowercase ml-[0.25em]">{t('landing.inAnyLanguage')}</span>
           </span>
         </h1>
       </AnimatedTitle>
       <div className="mx-auto my-12 min-h-40 max-w-80">
         {isLoading ? (
           <Button variant="ghost" size="lg" className="w-full" disabled>
-            <span className="truncate">Loading…</span>
+            <span className="truncate">{t('common.loading')}</span>
           </Button>
         ) : user ? (
           <MotionDiv
@@ -71,7 +108,7 @@ export function Hero() {
           >
             <Button variant="primary" size="lg" className="w-full" asChild>
               <NextLink href="/learn" className="truncate">
-                Continue Learning
+                {t('buttons.continueLearning')}
               </NextLink>
             </Button>
           </MotionDiv>
@@ -80,14 +117,14 @@ export function Hero() {
             <AnimatedListItem variants={item}>
               <Button variant="primary" size="lg" className="w-full" asChild>
                 <a href="/api/auth/login?screen_hint=signup" className="truncate">
-                  Get started
+                  {t('buttons.getStarted')}
                 </a>
               </Button>
             </AnimatedListItem>
             <AnimatedListItem variants={item}>
               <Button size="lg" className="w-full text-secondary" asChild>
                 <a href="/api/auth/login" className="truncate">
-                  I already have an account
+                  {t('auth.signIn')}
                 </a>
               </Button>
             </AnimatedListItem>
