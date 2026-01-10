@@ -5,25 +5,12 @@ import { eq } from 'drizzle-orm'
 import { getDb } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { requireUser } from '@/lib/auth0'
-import { isOriginAllowed } from '@/lib/cors'
+import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
 
 const FALLBACK_AVATAR = '/logo.svg'
 const FALLBACK_NAME = 'Learner'
 
 type UserProgressInsert = typeof userProgress.$inferInsert
-
-/**
- * Helper function to add CORS headers to response
- */
-function addCorsHeaders(response: NextResponse, origin: string | null) {
-  if (origin && isOriginAllowed(origin)) {
-    response.headers.set('Access-Control-Allow-Origin', origin)
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-  }
-  return response
-}
 
 export async function GET(request: NextRequest) {
   let user

@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse, NextRequest } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
-import { isOriginAllowed } from '@/lib/cors'
+import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
 
 const ai: GoogleGenAI = (() => {
   if (!process.env.GOOGLE_API_KEY) {
@@ -22,19 +22,6 @@ function getAI() {
   return ai;
 }
 export const maxDuration = 30;
-
-/**
- * Helper function to add CORS headers to response
- */
-function addCorsHeaders(response: NextResponse, origin: string | null) {
-  if (origin && isOriginAllowed(origin)) {
-    response.headers.set('Access-Control-Allow-Origin', origin)
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-  }
-  return response
-}
 
 const systemPrompt = `
 You are a helpful assistant for "BrainBytes", a gamified, interactive platform for learning Data Structures and Algorithms (DSA).

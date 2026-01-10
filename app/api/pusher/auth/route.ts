@@ -4,7 +4,7 @@ import { getDb } from '@/db/drizzle'
 import { challengeMatches } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth0'
-import { isOriginAllowed } from '@/lib/cors'
+import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
 
 let pusher: Pusher;
 
@@ -22,19 +22,6 @@ function getPusher() {
     });
   }
   return pusher;
-}
-
-/**
- * Helper function to add CORS headers to response
- */
-function addCorsHeaders(response: NextResponse, origin: string | null) {
-  if (origin && isOriginAllowed(origin)) {
-    response.headers.set('Access-Control-Allow-Origin', origin)
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-  }
-  return response
 }
 
 export async function POST(req: NextRequest) {

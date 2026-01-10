@@ -86,10 +86,10 @@ export function handleCorsPreFlight(request: NextRequest): NextResponse | null {
 /**
  * Add CORS headers to a response
  */
-export function addCorsHeaders(
-  response: NextResponse,
+export function addCorsHeaders<T>(
+  response: NextResponse<T>,
   origin: string | null
-): NextResponse {
+): NextResponse<T> {
   if (origin && isOriginAllowed(origin)) {
     response.headers.set('Access-Control-Allow-Origin', origin)
     Object.entries(CORS_HEADERS).forEach(([key, value]) => {
