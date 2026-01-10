@@ -239,50 +239,57 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="bg-card border rounded-lg p-4 space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      {/* Problem Section - On mobile, moves below editor */}
+      <div className="order-2 lg:order-1 bg-card border rounded-lg p-3 md:p-4 space-y-3 md:space-y-4 overflow-y-auto max-h-[50vh] lg:max-h-[85vh]">
         <div>
-          <h2 className="text-xl font-semibold mb-2">Problem</h2>
-          <p className="text-muted-foreground whitespace-pre-wrap">
+          <h2 className="text-lg sm:text-xl font-semibold mb-2">Problem</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap line-clamp-6 sm:line-clamp-none">
             {challenge.problemDescription}
           </p>
         </div>
         
         <div>
-          <h3 className="text-lg font-semibold mb-2">Examples</h3>
-          <div className="space-y-3">
+          <h3 className="text-base sm:text-lg font-semibold mb-2">Examples</h3>
+          <div className="space-y-2">
             {testCases.map((tc, index) => (
-              <div key={index} className="bg-muted/50 p-3 rounded-md">
-                <p className="font-mono text-sm">
+              <div key={index} className="bg-muted/50 p-2 md:p-3 rounded-md">
+                <p className="font-mono text-xs sm:text-sm break-words">
                   <strong>Input:</strong> {tc.input}
                 </p>
-                <p className="font-mono text-sm">
+                <p className="font-mono text-xs sm:text-sm break-words">
                   <strong>Output:</strong> {tc.output}
                 </p>
               </div>
             ))}
           </div>
         </div>
-        
       </div>
 
-      <div className="space-y-4">
-        <div className="bg-card border rounded-lg p-4">
-            <h3 className="text-lg font-semibold">Opponent Status</h3>
-            <p className="text-sm text-muted-foreground">
-              {opponentLanguage ? `Coding in ${opponentLanguage}` : "Connecting..."}
-            </p>
-            <p className="text-sm text-muted-foreground">Progress: {opponentCodeLength} characters</p>
+      {/* Editor Section - On mobile, takes full width at top */}
+      <div className="order-1 lg:order-2 space-y-3 md:space-y-4 flex flex-col">
+        <div className="bg-card border rounded-lg p-3 md:p-4">
+          <h3 className="text-base sm:text-lg font-semibold mb-2">Opponent Status</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {opponentLanguage ? `Coding in ${opponentLanguage}` : "Connecting..."}
+          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Progress: {opponentCodeLength} characters</p>
         </div>
 
-        <div className="h-[300px] md:h-[400px] border rounded-lg overflow-hidden">
+        {/* Editor Container - Responsive heights for different screen sizes */}
+        <div className="flex-1 min-h-[250px] sm:min-h-[300px] md:min-h-[350px] lg:min-h-[400px] border rounded-lg overflow-hidden bg-background">
           <Editor
             height="100%"
             language={language}
-            theme={document.documentElement.classList.contains('dark') ? 'vs-dark' : 'light'}
+            theme={typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'vs-dark' : 'light'}
             value={code}
             onChange={handleCodeChange}
-            options={{ minimap: { enabled: false } }}
+            options={{ 
+              minimap: { enabled: false },
+              fontSize: typeof window !== 'undefined' && window.innerWidth < 640 ? 11 : 12,
+              wordWrap: 'on',
+              scrollBeyondLastLine: false,
+            }}
           />
         </div>
 
@@ -290,33 +297,33 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting || status !== 'in_progress'}
-          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full')}
+          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'w-full text-sm sm:text-base')}
         >
           {isSubmitting ? 'Testing...' : 'Submit Solution'}
         </button>
         
         {submissionResults && (
-          <div className="bg-card border rounded-lg p-4 space-y-3">
-            <h3 className="text-lg font-semibold">Submission Results</h3>
+          <div className="bg-card border rounded-lg p-3 md:p-4 space-y-2 md:space-y-3 max-h-[250px] overflow-y-auto">
+            <h3 className="text-base sm:text-lg font-semibold sticky top-0 bg-card">Submission Results</h3>
             {submissionResults.map((result, index) => {
               const isPass = result.status.id === 3;
               const statusColor = isPass ? 'text-green-500' : 'text-red-500';
               const Icon = isPass ? CheckCircle : XCircle;
 
               return (
-                <div key={index} className="bg-muted/50 p-3 rounded-md">
-                  <div className="flex items-center justify-between">
-                    <span className={cn("font-bold text-md", statusColor)}>
-                      <Icon className="inline-block mr-2 size-5" />
-                      Test Case {index + 1}: {result.status.description}
+                <div key={index} className="bg-muted/50 p-2 md:p-3 rounded-md text-xs sm:text-sm">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className={cn("font-bold flex items-center gap-1", statusColor)}>
+                      <Icon className="inline-block flex-shrink-0 size-4" />
+                      <span className="truncate">Test Case {index + 1}: {result.status.description}</span>
                     </span>
                   </div>
-                  <div className="mt-2 space-y-1 font-mono text-sm">
-                    <p><strong>Input:</strong> {result.stdin}</p>
-                    <p><strong>Expected:</strong> {result.expected_output}</p>
+                  <div className="mt-2 space-y-1 font-mono text-xs">
+                    <p><strong>Input:</strong> <span className="break-all">{result.stdin}</span></p>
+                    <p><strong>Expected:</strong> <span className="break-all">{result.expected_output}</span></p>
                     <p>
                       <strong>Your Output:</strong>{" "}
-                      {result.stdout ? result.stdout : (result.stderr || result.compile_output || "No output")}
+                      <span className="break-all">{result.stdout ? result.stdout : (result.stderr || result.compile_output || "No output")}</span>
                     </p>
                   </div>
                 </div>
@@ -324,7 +331,6 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
             })}
           </div>
         )}
-        
       </div>
     </div>
   )
