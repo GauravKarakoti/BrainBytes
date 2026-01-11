@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { NextRequest } from 'next/server'
 
 vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>()
@@ -69,7 +70,8 @@ describe('API Security Integration Tests', () => {
     it('Should return 401/403 for unauthenticated requests', async () => {
       vi.mocked(auth0.getSession).mockResolvedValue(null)
       
-      const response = await getUserProfile()
+      const request = new NextRequest(new URL('http://localhost/api/user/profile'))
+      const response = await getUserProfile(request)
       expect(response.status).toBe(401)
     })
   })
@@ -78,7 +80,7 @@ describe('API Security Integration Tests', () => {
     it('Should fail without a valid session', async () => {
       vi.mocked(auth0.getSession).mockResolvedValue(null)
       
-      const req = new Request('http://localhost/api/chat', {
+      const req = new NextRequest('http://localhost/api/chat', {
         method: 'POST',
         body: JSON.stringify({ messages: [] })
       })
@@ -92,7 +94,7 @@ describe('API Security Integration Tests', () => {
         user: { sub: 'user-1', name: 'Test User', email: 'test@example.com', picture: 'pic.jpg' }
       } as any)
 
-      const req = new Request('http://localhost/api/chat', {
+      const req = new NextRequest('http://localhost/api/chat', {
         method: 'POST',
         body: JSON.stringify({ messages: [{ role: 'user', content: 'Hello' }] })
       })
