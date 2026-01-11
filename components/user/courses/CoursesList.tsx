@@ -6,9 +6,11 @@ type CoursesListProps = {
   activeId?: UserProgressType['activeCourseId']
 }
 
+// @/components/user/courses/CoursesList.tsx
+
 export function CoursesList({ courses, activeId }: CoursesListProps) {
   return (
-    <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(210px,100%),1fr))] gap-4">
+    <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {courses.map((course) => (
         <li key={course.id}>
           <CoursesListCard course={course} activeId={activeId} />
