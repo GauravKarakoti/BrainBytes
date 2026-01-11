@@ -27,7 +27,7 @@ function getPusher() {
 /**
  * Helper function to add CORS headers to response
  */
-function addCorsHeaders(response: NextResponse, origin: string | null) {
+function addCorsHeaders<T>(response: NextResponse<T>, origin: string | null): NextResponse<T> {
   if (origin && isOriginAllowed(origin)) {
     response.headers.set('Access-Control-Allow-Origin', origin)
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')

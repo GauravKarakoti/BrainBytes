@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useLocale } from 'next-intl'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -8,7 +9,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Globe } from 'lucide-react'
-import { locales } from '@/i18n.config'
 
 const languages = [
   { code: 'en', label: 'English' },
@@ -16,27 +16,36 @@ const languages = [
 ]
 
 export function LanguageSwitcher() {
-  const [locale, setLocale] = useState('en')
-  const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    // Get locale from cookie or localStorage
-    const savedLocale = localStorage.getItem('locale') || 'en'
-    setLocale(savedLocale)
-  }, [])
+  const locale = useLocale()
+  const pathname = usePathname()
 
   const onChangeLocale = (newLocale: string) => {
-    localStorage.setItem('locale', newLocale)
-    setLocale(newLocale)
-    setIsOpen(false)
-    // Trigger a page reload or emit an event to update translations
-    window.dispatchEvent(new CustomEvent('localeChange', { detail: newLocale }))
+    // Create the new pathname by replacing the locale in the URL
+    let newPathname = pathname
+    
+    // If the pathname starts with the current locale, replace it
+    if (pathname.startsWith(`/${locale}`)) {
+      newPathname = pathname.replace(`/${locale}`, newLocale === 'en' ? '' : `/${newLocale}`)
+    } else if (locale !== 'en') {
+      // Current is non-default locale without prefix (shouldn't happen, but handle it)
+      newPathname = newLocale === 'en' ? pathname : `/${newLocale}${pathname}`
+    } else {
+      // Current is default locale (en) without prefix, add new locale
+      newPathname = newLocale === 'en' ? pathname : `/${newLocale}${pathname}`
+    }
+
+    // Ensure pathname starts with /
+    if (!newPathname.startsWith('/')) {
+      newPathname = '/' + newPathname
+    }
+
+    window.location.href = newPathname
   }
 
   const currentLanguage = languages.find(lang => lang.code === locale)?.label || 'Language'
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button 
           variant="ghost" 

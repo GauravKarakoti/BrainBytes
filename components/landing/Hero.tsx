@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from 'react'
 import type { Variants } from 'framer-motion'
 import NextLink from 'next/link'
 import { useUser } from '@auth0/nextjs-auth0/client'
+import { useTranslations } from 'next-intl'
 import { Code2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MotionDiv } from '@/components/motion'
@@ -35,42 +35,7 @@ const item = {
 
 export function Hero() {
   const { user, isLoading } = useUser()
-  const [locale, setLocale] = useState('en')
-  const [translations, setTranslations] = useState<any>(null)
-
-  useEffect(() => {
-    const savedLocale = localStorage.getItem('locale') || 'en'
-    setLocale(savedLocale)
-
-    // Load translations
-    import(`@/messages/${savedLocale}.json`).then(mod => {
-      setTranslations(mod.default)
-    })
-
-    // Listen for locale changes
-    const handleLocaleChange = (e: Event) => {
-      const event = e as CustomEvent
-      const newLocale = event.detail
-      setLocale(newLocale)
-      import(`@/messages/${newLocale}.json`).then(mod => {
-        setTranslations(mod.default)
-      })
-    }
-
-    window.addEventListener('localeChange', handleLocaleChange)
-    return () => window.removeEventListener('localeChange', handleLocaleChange)
-  }, [])
-
-  if (!translations) return null
-
-  const t = (key: string) => {
-    const keys = key.split('.')
-    let value: any = translations
-    for (const k of keys) {
-      value = value?.[k]
-    }
-    return value || key
-  }
+  const t = useTranslations()
 
   return (
     <section className="relative overflow-hidden px-4 pb-8 pt-32 lg:pt-24">
