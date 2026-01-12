@@ -110,24 +110,20 @@ export async function upsertChallengeProgress(challengeId: number) {
 
     console.log('[upsertChallengeProgress] Updating user progress - points:', newPoints, 'level:', newLevelData.level)
 
+    // Accumulate pending tokens instead of minting immediately
+    const currentPendingTokens = currentUserProgress.pendingTokens || 0
+    const newPendingTokens = currentPendingTokens + TOKENS_PER_CHALLENGE
+
+    console.log(`[upsertChallengeProgress] Accumulating ${TOKENS_PER_CHALLENGE} tokens. Total pending: ${newPendingTokens}`)
+
     await db
       .update(userProgress)
       .set({
         points: newPoints,
         level: newLevelData.level,
+        pendingTokens: newPendingTokens,
       })
       .where(eq(userProgress.userId, userId))
-    
-    console.log("Current User Progress:",currentUserProgress)
-    if (currentUserProgress.wallet_address) {
-      try {
-        const amount = ethers.parseUnits(TOKENS_PER_CHALLENGE.toString(), B_DECIMALS);
-        const tx = await byteTokenContract.mint(currentUserProgress.wallet_address, amount);
-        console.log(`Minting ${TOKENS_PER_CHALLENGE} BYTE to ${currentUserProgress.wallet_address}, tx: ${tx.hash}`);
-      } catch (error) {
-        console.error("Failed to mint BYTE tokens:", error);
-      }
-    }
 
     await updateQuestProgress(userId, 'progress', 1)
 

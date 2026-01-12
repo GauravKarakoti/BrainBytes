@@ -143,7 +143,12 @@ export async function POST(req: Request) {
   try {
     user = await requireUser()
   } catch (error) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    // In development, allow unauthenticated access for testing
+    if (process.env.NODE_ENV === 'development') {
+      user = { id: 'anonymous-dev-user' }
+    } else {
+      return new NextResponse('Unauthorized', { status: 401 })
+    }
   }
 
   // Parse and validate incoming JSON
@@ -181,30 +186,31 @@ export async function POST(req: Request) {
     return new NextResponse('Invalid message: contains no non-empty text content', { status: 400 })
   }
 
-  // Rate limiting: determine tier and enforce limits
+  // Rate limiting: determine tier and enforce limits (disabled in development)
   let rlLimit = 5
-  try {
-    const { tier, limit } = await resolveUserTier(user)
-    rlLimit = limit
-    const rl = await checkRateLimit(user.id, rlLimit)
-    // Attach rate limit headers on responses
-    if (!rl.allowed) {
-      return new NextResponse('Too Many Requests', {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': String(rlLimit),
-          'X-RateLimit-Remaining': String(rl.remaining),
-        },
-      })
-    }
+  if (process.env.NODE_ENV !== 'development') {
+    try {
+      const { tier, limit } = await resolveUserTier(user)
+      rlLimit = limit
+      const rl = await checkRateLimit(user.id, rlLimit)
+      // Attach rate limit headers on responses
+      if (!rl.allowed) {
+        return new NextResponse('Too Many Requests', {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(rlLimit),
+            'X-RateLimit-Remaining': String(rl.remaining),
+          },
+        })
+      }
 
-    // Attach rate limit headers for successful attempt (will be returned later)
-    // We'll include these headers on the final response below by capturing rl
-    ;(user as any)._rateLimit = rl
-    ;(user as any)._rateLimitLimit = rlLimit
-  } catch (err) {
-    console.error('[chat] Rate limit check failed:', err)
-    // Continue without rate limiting on unexpected errors but log it
+      // Attach rate limit headers for successful attempt (will be returned later)
+      ;(user as any)._rateLimit = rl
+      ;(user as any)._rateLimitLimit = rlLimit
+    } catch (err) {
+      console.error('[chat] Rate limit check failed:', err)
+      // Continue without rate limiting on unexpected errors but log it
+    }
   }
 
   // Log metadata only (avoid logging user-provided text)
@@ -214,11 +220,16 @@ export async function POST(req: Request) {
   let result: any
   try {
     result = await getAI().models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: systemPrompt + userText,
     })
   } catch (err: any) {
-    console.error('[chat] AI generation failed:', err)
+    console.error('[chat] AI generation failed:', {
+      message: err?.message,
+      status: err?.status,
+      statusCode: err?.statusCode,
+      error: err
+    })
 
     const statusCode = err?.status ?? err?.statusCode
     if (statusCode === 429) {
@@ -234,11 +245,30 @@ export async function POST(req: Request) {
 
   // Safely extract the text from the response
   let textResult = ''
-  if (Array.isArray(result?.candidates) && result.candidates.length > 0) {
+  
+  // Log the response structure for debugging
+  console.log('[chat] AI response structure:', {
+    hasText: !!result?.text,
+    textType: typeof result?.text,
+    hasCandidates: Array.isArray(result?.candidates),
+    candidatesLength: result?.candidates?.length,
+    keys: Object.keys(result || {}).slice(0, 10)
+  })
+
+  // Handle text getter (standard GenAI SDK pattern in GenerateContentResponse)
+  if (result?.text) {
+    textResult = result.text
+  }
+  // Handle candidates array pattern (fallback)
+  else if (Array.isArray(result?.candidates) && result.candidates.length > 0) {
     textResult = extractTextFromCandidate(result.candidates[0])
-  } else if (result?.candidate) {
+  } 
+  // Handle single candidate
+  else if (result?.candidate) {
     textResult = extractTextFromCandidate(result.candidate)
-  } else if (typeof result?.content === 'string') {
+  }
+  // Handle direct content string
+  else if (typeof result?.content === 'string') {
     textResult = result.content
   }
 

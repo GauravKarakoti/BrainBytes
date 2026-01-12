@@ -133,28 +133,28 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">❤️</span>
-          <span className="text-xl font-bold">{hearts}</span>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
+        <div className="flex items-center gap-2 order-2 sm:order-1">
+          <span className="text-xl sm:text-2xl">❤️</span>
+          <span className="text-lg sm:text-xl font-bold">{hearts}</span>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
           {isCorrect === null ? (
             <Button
               onClick={handleCheck}
               disabled={selectedOption === null || isPending}
               variant="primary"
               size="lg"
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto text-sm sm:text-base px-4"
             >
               Check Answer
             </Button>
           ) : isCorrect ? (
-            <Button onClick={handleContinue} disabled={isPending} variant="primary" size="lg" className="w-full sm:w-auto">
+            <Button onClick={handleContinue} disabled={isPending} variant="primary" size="lg" className="w-full sm:w-auto text-sm sm:text-base px-4">
               Continue
             </Button>
           ) : (
-            <Button onClick={handleContinue} variant="ghost" size="lg" className="w-full sm:w-auto">
+            <Button onClick={handleContinue} variant="ghost" size="lg" className="w-full sm:w-auto text-sm sm:text-base px-4">
               Try Again
             </Button>
           )}

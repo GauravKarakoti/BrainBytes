@@ -57,7 +57,8 @@ A gamified, interactive platform designed to make learning Data Structures and A
 - [🏗️ Architecture](#architecture)
 - [🛠️ Tech Stack](#tech-stack)
 - [📚 Learning Paths](#learning-paths)
-- [🚀 Getting Started](#getting-started)
+- [� Security](#security)
+- [�🚀 Getting Started](#getting-started)
 - [🔄 CI/CD Pipelines](#cicd-pipelines)
 - [🤝 Contributing](#contributing)
 - [💙 Contributors](#contributors)
@@ -269,6 +270,39 @@ Each course supports learning in your preferred language with localization featu
 - **Daily Quests**: Quick challenges for daily practice
 - **Weekly Quests**: Longer problems with higher rewards
 - **Seasonal Quests**: Special themed challenges with exclusive rewards
+
+ <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
+
+## 🔐 Security
+
+BrainBytes implements comprehensive security measures to protect user data and API endpoints:
+
+### Key Security Features
+- **Authentication**: Auth0-based user authentication with JWT tokens
+- **Middleware Protection**: Edge-level authentication for protected routes
+- **API Security**: All sensitive endpoints require authentication and authorization
+- **Webhook Verification**: External webhooks (Stripe) verified with signatures
+- **Rate Limiting**: Per-user rate limiting on API endpoints
+- **Automated Security Scanning**: GitHub Actions CI/CD pipeline includes:
+  - Dependency vulnerability scanning (`pnpm audit`)
+  - Static Application Security Testing (SAST) with CodeQL
+  - Container and filesystem vulnerability scanning with Trivy
+
+### For Developers
+→ **[Read SECURITY_DETAILS.md](SECURITY_DETAILS.md)** for comprehensive security documentation including:
+- Authentication patterns and best practices
+- Protected endpoint specifications
+- Implementation guidelines for new APIs
+- Common security mistakes and how to avoid them
+- Debugging guide for authentication issues
+
+### Security Checklist
+All API endpoints are protected with appropriate authentication mechanisms:
+- ✅ User-facing APIs require authentication via `requireUser()`
+- ✅ Webhooks verified using service-specific signatures (Stripe)
+- ✅ Internal service endpoints protected with bearer tokens
+- ✅ Middleware enforces authentication at the edge level
+- ✅ Defense-in-depth strategy with multiple authentication layers
 
  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 ## 🚀 Getting Started

@@ -24,16 +24,20 @@ export async function POST(req: NextRequest) {
     return new NextResponse("Webhook Error", { status: 400 });
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
-
+  /* ================= checkout.session.completed ================= */
   if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    if (!session.metadata?.userId || !session.subscription) {
+      return new NextResponse("Invalid checkout session", { status: 400 });
+    }
+
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     );
 
-    if (!session?.metadata?.userId) {
-      return new NextResponse("User ID is required", { status: 400 });
-    }
+    const currentPeriodEnd =
+      (subscription as any).current_period_end as number;
 
     const planId = session.metadata.planId || "free";
     const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
@@ -67,6 +71,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  /* ================= invoice.payment_succeeded ================= */
   if (event.type === "invoice.payment_succeeded") {
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
@@ -126,6 +131,21 @@ export async function POST(req: NextRequest) {
       })
       .where(eq(userSubscription.stripeSubscriptionId, subscription.id));
   }
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+  const currentPeriodEnd =
+    (subscription as unknown as { current_period_end: number })
+      .current_period_end;
+
+  await db
+    .update(userSubscription)
+    .set({
+      stripePriceId: subscription.items.data[0].price.id,
+      stripeCurrentPeriodEnd: new Date(currentPeriodEnd * 1000),
+    })
+    .where(eq(userSubscription.stripeSubscriptionId, subscription.id));
+}
 
   return new NextResponse(null, { status: 200 });
 }

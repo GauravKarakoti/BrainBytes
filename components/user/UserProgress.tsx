@@ -3,6 +3,7 @@ import NextImage from 'next/image'
 import { InfinityIcon, Ban } from 'lucide-react'
 import { getLevelFromPoints } from '@/config/levels'
 import { getUserProgress, getUserSubscription } from '@/db/queries/userProgress'
+import { ClaimRewardsButton } from '@/components/user/ClaimRewardsButton'
 
 type UserProgressProps = {
   plain?: boolean
@@ -14,9 +15,10 @@ export async function UserProgress({ plain }: UserProgressProps) {
     const userSubscription = await getUserSubscription()
     
     const subscriptionActive = userSubscription?.isActive ?? false
-    const { points = 0, hearts = 0, activeCourse } = userProgress ?? {}
+    const { points = 0, hearts = 0, activeCourse, pendingTokens = 0, wallet_address } = userProgress ?? {}
     const { level, title: levelTitle } = getLevelFromPoints(points)
     const { title = 'Select course', altCode } = activeCourse ?? {}
+    const hasWallet = !!wallet_address
 
     return (
       <div className="flex h-full min-h-[220px] w-full max-h-[calc(100vh-3rem)] flex-col justify-evenly text-sm">
@@ -74,6 +76,18 @@ export async function UserProgress({ plain }: UserProgressProps) {
             </span>
           </div>
         </NextLink>
+        
+        {/* Claim Rewards Section */}
+        {(pendingTokens > 0 || hasWallet) && (
+          <div className="flex flex-col gap-y-2">
+            {pendingTokens > 0 && (
+              <div className="text-xs text-muted-foreground">
+                <span className="font-semibold text-amber-500">{pendingTokens} BYTE</span> pending
+              </div>
+            )}
+            <ClaimRewardsButton pendingTokens={pendingTokens} hasWallet={hasWallet} />
+          </div>
+        )}
       </div>
     )
   } catch (error) {
