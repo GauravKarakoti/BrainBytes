@@ -1,0 +1,128 @@
+{
+  "common": {
+    "loading": "Cargando…",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar"
+  },
+  "navigation": {
+    "learn": "Aprender",
+    "leaderboard": "Tabla de clasificación",
+    "quests": "Misiones",
+    "shop": "Tienda",
+    "forum": "Foro",
+    "lesson": "Lección",
+    "dashboard": "Panel",
+    "home": "Inicio",
+    "profile": "Perfil",
+    "settings": "Configuración"
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "signOut": "Cerrar sesión",
+    "logout": "Cerrar sesión",
+    "continueWithGoogle": "Continuar con Google",
+    "continueWithGitHub": "Continuar con GitHub",
+    "continueWithAuth0": "Continuar con Auth0"
+  },
+  "buttons": {
+    "continueLearning": "Continuar aprendiendo",
+    "getStarted": "Empezar",
+    "startLearning": "Comenzar a aprender",
+    "goBack": "Volver",
+    "learnMore": "Saber más",
+    "tryNow": "Probar ahora",
+    "viewMore": "Ver más",
+    "copyUserId": "Copiar ID de usuario",
+    "editProfile": "Editar perfil"
+  },
+  "user": {
+    "level": "Nivel",
+    "xp": "PX",
+    "hearts": "Corazones",
+    "gems": "Gemas",
+    "displayName": "Nombre de pantalla",
+    "avatar": "Avatar",
+    "userIdCopied": "ID de usuario copiado al portapapeles",
+    "userIdCopyFailed": "No se pudo copiar la ID",
+    "displayNameEmpty": "El nombre de pantalla no puede estar vacío",
+    "profile": "Perfil",
+    "email": "Correo electrónico",
+    "learner": "Aprendiz",
+    "emailNotAvailable": "Correo electrónico no disponible",
+    "updateProfile": "Actualizar perfil",
+    "profileUpdated": "Perfil actualizado exitosamente",
+    "profileUpdateFailed": "Error al actualizar el perfil"
+  },
+  "landing": {
+    "masterProgramming": "Domina",
+    "programming": "Programación",
+    "inAnyLanguage": "en cualquier lenguaje.",
+    "heroDescription": "Aprende Estructuras de Datos y Algoritmos con desafíos de programación interactivos. Domina múltiples lenguajes de programación a través de proyectos reales.",
+    "futureOfCoding": "El futuro de la codificación",
+    "masterNewFeatures": "Domina nuevas características del lenguaje con proyectos reales",
+    "stayCurrentWithLanguages": "Mantente actualizado con nuevas versiones de lenguajes y herramientas",
+    "earnBadges": "Gana insignias de habilidad para cada hito del lenguaje",
+    "collaborateWithLearners": "Colabora con aprendices de todos los niveles"
+  },
+  "courses": {
+    "selectCourse": "Seleccionar un curso",
+    "courseName": "Nombre del curso",
+    "description": "Descripción",
+    "level": "Nivel",
+    "duration": "Duración",
+    "startCourse": "Comenzar curso"
+  },
+  "lessons": {
+    "completionStatus": "Estado de finalización",
+    "completed": "Completado",
+    "inProgress": "En progreso",
+    "notStarted": "No iniciado",
+    "challenge": "Desafío",
+    "solution": "Solución",
+    "submitAnswer": "Enviar respuesta",
+    "checkAnswer": "Verificar respuesta"
+  },
+  "shop": {
+    "shop": "Tienda",
+    "buyNow": "Comprar ahora",
+    "alreadyOwned": "Ya lo posees",
+    "coins": "Monedas",
+    "gems": "Gemas",
+    "hearts": "Corazones",
+    "unlockFeatures": "Desbloquea funciones premium y mejora tu experiencia de aprendizaje"
+  },
+  "forum": {
+    "forum": "Foro",
+    "createTopic": "Crear tema",
+    "reply": "Responder",
+    "connectWithLearners": "Conéctate con otros aprendices de BrainBytes, haz preguntas, comparte comentarios y ayuda a otros a crecer. Nuestros moderadores mantienen el espacio amigable y de apoyo para todos.",
+    "recentPosts": "Publicaciones recientes",
+    "yourPosts": "Tus publicaciones"
+  },
+  "quests": {
+    "quests": "Misiones",
+    "activeQuests": "Misiones activas",
+    "completedQuests": "Misiones completadas",
+    "reward": "Recompensa",
+    "claimReward": "Reclamar recompensa"
+  },
+  "errors": {
+    "pageNotFound": "Página no encontrada",
+    "somethingWentWrong": "Algo salió mal",
+    "tryAgain": "Intentar de nuevo",
+    "goHome": "Ir a inicio"
+  },
+  "metrics": {
+    "byTheNumbers": "BrainBytes en números",
+    "guidedProjects": "proyectos guiados por lenguaje",
+    "languages": "lenguajes para profundizar",
+    "sampleCode": "líneas de código de muestra anotado",
+    "shippingApps": "aprendices que envían aplicaciones en un nuevo lenguaje"
+  }
+}
