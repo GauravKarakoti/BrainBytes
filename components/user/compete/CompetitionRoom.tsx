@@ -124,9 +124,10 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
     });
 
     let matchChannel: any = null;
+    let matchChannelName: string | null = null;
     if (match?.id) {
-      const channelName = `private-match-${match.id}`;
-      matchChannel = pusherClient.subscribe(channelName);
+      matchChannelName = `private-match-${match.id}`;
+      matchChannel = pusherClient.subscribe(matchChannelName);
 
       matchChannel.bind('opponent-progress', (data: { senderId: string, codeLength: number, language: string }) => {
         if (data.senderId !== userId) {
@@ -145,7 +146,7 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
     return () => {
       pusherClient.unsubscribe(userChannelName);
       if (matchChannel) {
-        pusherClient.unsubscribe(`private-match-${match.id}`);
+        pusherClient.unsubscribe(matchChannelName!);
       }
       pusherClient.disconnect();
     };
