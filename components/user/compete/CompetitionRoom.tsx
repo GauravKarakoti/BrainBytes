@@ -66,14 +66,8 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
       setMatch(result.match)
 
       if (result.status === 'joined') {
-        dismissStatusToasts()
-        setStatus('in_progress')
-        toast.success('Opponent found! The match has started.')
-        // @ts-ignore
-        if (result.match.playerOneLanguage) {
-          // @ts-ignore
-          setOpponentLanguage(result.match.playerOneLanguage)
-        }
+        setStatus('waiting')
+        toast.info('Waiting for an opponent to join...', { id: WAITING_TOAST_ID })
       } else {
         setStatus('waiting')
         toast.info('Waiting for an opponent to join...', { id: WAITING_TOAST_ID })
@@ -103,47 +97,57 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
   }, [])
 
   useEffect(() => {
-    if (!match?.id || !userId) return;
+    if (!userId) return;
 
     const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY!, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
       authEndpoint: '/api/pusher/auth',
     });
 
-    const channelName = `private-match-${match.id}`;
-    const channel = pusherClient.subscribe(channelName);
+    const userChannelName = `private-user-${userId}`;
+    const userChannel = pusherClient.subscribe(userChannelName);
 
-    channel.bind('match-start', (data: { match: ChallengeMatchType }) => {
+    userChannel.bind('match-start', (data: { match: ChallengeMatchType }) => {
       setMatch(data.match);
       setStatus('in_progress');
       dismissStatusToasts();
       toast.success('Opponent found! The match has started.');
-      
-      const opponentId = data.match.playerOneId === userId 
-        ? data.match.playerTwoId 
+
+      const opponentId = data.match.playerOneId === userId
+        ? data.match.playerTwoId
         : data.match.playerOneId;
       // @ts-ignore
-      const oppLang = data.match.playerOneId === opponentId 
-        ? data.match.playerOneLanguage 
+      const oppLang = data.match.playerOneId === opponentId
+        ? data.match.playerOneLanguage
         : data.match.playerTwoLanguage;
       setOpponentLanguage(oppLang);
     });
 
-    channel.bind('opponent-progress', (data: { senderId: string, codeLength: number, language: string }) => {
-      if (data.senderId !== userId) {
-        setOpponentCodeLength(data.codeLength);
-        setOpponentLanguage(data.language); 
-      }
-    });
+    let matchChannel: any = null;
+    let matchChannelName: string | null = null;
+    if (match?.id) {
+      matchChannelName = `private-match-${match.id}`;
+      matchChannel = pusherClient.subscribe(matchChannelName);
 
-    channel.bind('match-over', (data: { winnerId: string }) => {
-      setWinnerId(data.winnerId);
-      setStatus('completed');
-      dismissStatusToasts();
-    });
+      matchChannel.bind('opponent-progress', (data: { senderId: string, codeLength: number, language: string }) => {
+        if (data.senderId !== userId) {
+          setOpponentCodeLength(data.codeLength);
+          setOpponentLanguage(data.language);
+        }
+      });
+
+      matchChannel.bind('match-over', (data: { winnerId: string }) => {
+        setWinnerId(data.winnerId);
+        setStatus('completed');
+        dismissStatusToasts();
+      });
+    }
 
     return () => {
-      pusherClient.unsubscribe(channelName);
+      pusherClient.unsubscribe(userChannelName);
+      if (matchChannel) {
+        pusherClient.unsubscribe(matchChannelName!);
+      }
       pusherClient.disconnect();
     };
 

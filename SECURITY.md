@@ -1,6 +1,6 @@
 # Security Details & Protocols
 
-BrainBytes implements comprehensive security measures to protect user data and API endpoints.
+BrainBytes implements the comprehensive security measures to protect user data and API endpoints.
 
 ## Key Security Features
 - **Authentication**: Auth0-based user authentication with JWT tokens.
