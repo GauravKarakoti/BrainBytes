@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import Pusher from 'pusher'
 import { getDb } from '@/db/drizzle'
 import { challengeMatches } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth0'
+import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
 
 let pusher: Pusher;
 
@@ -23,7 +24,7 @@ function getPusher() {
   return pusher;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const user = await requireUser()
   const userId = user.id
 
@@ -34,7 +35,11 @@ export async function POST(req: Request) {
   const matchId = channel.replace('private-match-', '');
 
   if (!matchId) {
-      return new NextResponse('Forbidden: Invalid channel', { status: 403 })
+      const response = addCorsHeaders(
+          new NextResponse('Forbidden: Invalid channel', { status: 403 }),
+          req.headers.get('origin')
+      )
+      return response
   }
 
   try {
@@ -43,10 +48,18 @@ export async function POST(req: Request) {
       });
 
     if (!match || (match.playerOneId !== userId && match.playerTwoId !== userId)) {
-          return new NextResponse('Forbidden: Not part of match', { status: 403 })
+          const response = addCorsHeaders(
+              new NextResponse('Forbidden: Not part of match', { status: 403 }),
+              req.headers.get('origin')
+          )
+          return response
       }
   } catch (e) {
-      return new NextResponse('Internal Server Error', { status: 500 })
+      const response = addCorsHeaders(
+          new NextResponse('Internal Server Error', { status: 500 }),
+          req.headers.get('origin')
+      )
+      return response
   }
 
   const userData = {
@@ -54,5 +67,9 @@ export async function POST(req: Request) {
   }
 
   const authResponse = getPusher().authorizeChannel(socketId, channel, userData)
-  return NextResponse.json(authResponse)
+  const response = addCorsHeaders(
+      NextResponse.json(authResponse),
+      req.headers.get('origin')
+  )
+  return response
 }
