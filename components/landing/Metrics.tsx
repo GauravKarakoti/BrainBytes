@@ -3,7 +3,6 @@
 import { type PropsWithChildren, useRef } from 'react'
 import { useScroll, useTransform, useSpring, motion } from 'framer-motion'
 
-
 import { MetricsItem } from '@/components/landing/MetricsItem'
 import { AnimatedTitle } from '@/components/motion/AnimatedTitle'
 
@@ -36,7 +35,7 @@ export function Metrics({ children }: PropsWithChildren) {
           <MetricsItem
             className="bg-primary-light"
             number={120}
-            description="Guided Projects"
+            description="guided projects per language"
             offset={20}
             progress={scrollYProgress}
           >
@@ -47,7 +46,7 @@ export function Metrics({ children }: PropsWithChildren) {
           <MetricsItem
             className="bg-secondary"
             number={12}
-            description="Languages"
+            description="languages to dive deep into"
             offset={22.5}
             progress={scrollYProgress}
           >
@@ -60,7 +59,7 @@ export function Metrics({ children }: PropsWithChildren) {
             number={3}
             prefix="~"
             suffix="M"
-            description="Sample Code"
+            description="lines of annotated sample code"
             offset={25}
             progress={scrollYProgress}
           >
@@ -72,7 +71,7 @@ export function Metrics({ children }: PropsWithChildren) {
             className="bg-gradient-to-b from-primary to-primary-depth to-80%"
             number={94}
             suffix="%"
-            description="Shipping Apps"
+            description="learners shipping apps in a new language"
             offset={20}
             progress={scrollYProgress}
             last

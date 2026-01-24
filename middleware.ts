@@ -1,4 +1,3 @@
-import createMiddleware from 'next-intl/middleware'
 import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge'
 import { NextRequest, NextResponse } from 'next/server'
 import { handleCorsPreFlight, isOriginAllowed } from '@/lib/cors'
@@ -52,9 +51,6 @@ export const config = {
   // Protected API routes - enforce authentication on all API endpoints except webhooks and auth routes
   // Excluded: /api/auth (Auth0 callback), /api/webhooks (external integrations), /api/cron (internal service with secret)
   matcher: [
-    // Include all paths for i18n routing
-    '/((?!api|_next|_vercel|.*\\..*).*))',
-    // Specific Auth0 protected routes
     '/learn/:path*',
     '/leaderboard/:path*',
     '/quests/:path*',

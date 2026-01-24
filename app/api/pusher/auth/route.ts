@@ -24,19 +24,6 @@ function getPusher() {
   return pusher;
 }
 
-/**
- * Helper function to add CORS headers to response
- */
-function addCorsHeaders<T>(response: NextResponse<T>, origin: string | null): NextResponse<T> {
-  if (origin && isOriginAllowed(origin)) {
-    response.headers.set('Access-Control-Allow-Origin', origin)
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-    response.headers.set('Access-Control-Allow-Credentials', 'true')
-  }
-  return response
-}
-
 export async function POST(req: NextRequest) {
   const user = await requireUser()
   const userId = user.id
