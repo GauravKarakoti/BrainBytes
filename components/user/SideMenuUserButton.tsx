@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import NextLink from 'next/link'
-import { useTranslations } from 'next-intl'
-
 import { Copy, Gauge, Heart, LogOut, Settings, Sparkles, Trophy, Gem } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -26,7 +24,6 @@ import { useUserProfile } from '@/lib/hooks/useUserProfile'
 const DEFAULT_AVATAR = '/logo.svg'
 
 export function SideMenuUserButton() {
-  const t = useTranslations()
   const {
     authUser,
     isAuthLoading,
@@ -113,15 +110,15 @@ export function SideMenuUserButton() {
       const data = (await response.json().catch(() => ({}))) as { error?: string }
 
       if (!response.ok) {
-        throw new Error(data.error ?? t('user.profileUpdateFailed'))
+        throw new Error(data.error ?? 'Failed to update profile')
       }
 
       await invalidateProfile()
-      toast.success(t('user.profileUpdated'))
+      toast.success('Profile updated')
       setDialogOpen(false)
       setPopoverOpen(false)
     } catch (error) {
-      const message = error instanceof Error ? error.message : t('user.profileUpdateFailed')
+      const message = error instanceof Error ? error.message : 'Failed to update profile'
       toast.error(message)
     } finally {
       setIsSaving(false)
@@ -145,7 +142,7 @@ export function SideMenuUserButton() {
     return (
       <div className="relative flex h-[60px] items-center sm:max-lg:justify-center">
         <a href="/api/auth/login" className={triggerClassName}>
-          {t('auth.signIn')}
+          Login
         </a>
       </div>
     )
@@ -167,7 +164,7 @@ export function SideMenuUserButton() {
               <span className="max-w-full truncate text-sm font-medium leading-tight">
                 {displayName}
               </span>
-              {displayEmail !== t('user.emailNotAvailable') ? (
+              {displayEmail !== 'Email not available' ? (
                 <span className="max-w-full truncate text-xs text-muted-foreground">
                   {displayEmail}
                 </span>
@@ -187,7 +184,7 @@ export function SideMenuUserButton() {
               />
               <div className="min-w-0">
                 <p className="truncate text-base font-semibold">{displayName}</p>
-                {displayEmail !== t('user.emailNotAvailable') ? (
+                {displayEmail !== 'Email not available' ? (
                   <p className="truncate text-xs text-muted-foreground">{displayEmail}</p>
                 ) : null}
               </div>
@@ -214,7 +211,7 @@ export function SideMenuUserButton() {
               onClick={handleCopyId}
             >
               <Copy className="size-4" aria-hidden="true" />
-              {t('buttons.copyUserId')}
+              Copy user ID
             </Button>
           </div>
           <Separator />
@@ -229,18 +226,18 @@ export function SideMenuUserButton() {
               }}
             >
               <Settings className="size-4" aria-hidden="true" />
-              {t('user.profile')} & {t('navigation.settings')}
+              Profile & preferences
             </Button>
             <Button variant="ghost" className="w-full justify-start gap-2" asChild>
               <NextLink href="/learn">
                 <Gauge className="size-4" aria-hidden="true" />
-                {t('navigation.dashboard')}
+                Go to dashboard
               </NextLink>
             </Button>
             <Button variant="danger" className="w-full justify-start gap-2" asChild>
               <a href="/api/auth/logout">
                 <LogOut className="size-4" aria-hidden="true" />
-                {t('auth.logout')}
+                Logout
               </a>
             </Button>
           </div>
@@ -249,9 +246,9 @@ export function SideMenuUserButton() {
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('user.updateProfile')}</DialogTitle>
+            <DialogTitle>Profile & preferences</DialogTitle>
             <DialogDescription>
-              {t('user.profile')} & {t('navigation.settings')}
+              Personalise how your profile appears across BrainBytes.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-6" onSubmit={handleDialogSubmit}>
@@ -265,12 +262,12 @@ export function SideMenuUserButton() {
               />
               <div className="flex-1 space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('user.displayName')}
+                  Display name
                 </label>
                 <Input
                   value={displayNameInput}
                   onChange={(event) => setDisplayNameInput(event.target.value)}
-                  placeholder={t('user.displayName')}
+                  placeholder="Your name"
                   maxLength={60}
                   required
                 />
@@ -278,7 +275,7 @@ export function SideMenuUserButton() {
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {t('user.avatar')} URL
+                Avatar URL
               </label>
               <Input
                 value={avatarInput}
@@ -286,7 +283,7 @@ export function SideMenuUserButton() {
                 placeholder="https://example.com/avatar.png"
               />
               <p className="text-xs text-muted-foreground">
-                {t('user.profile')} & preferences - avatar section info message
+                Leave blank to keep using your Auth0 avatar.
               </p>
             </div>
             <DialogFooter className="gap-2 sm:justify-between">
@@ -297,7 +294,7 @@ export function SideMenuUserButton() {
                 onClick={() => setAvatarInput('')}
                 disabled={isSaving}
               >
-                {t('auth.continueWithAuth0')}
+                Use Auth0 avatar
               </Button>
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 <Button
@@ -306,10 +303,10 @@ export function SideMenuUserButton() {
                   onClick={() => setDialogOpen(false)}
                   disabled={isSaving}
                 >
-                  {t('common.cancel')}
+                  Cancel
                 </Button>
                 <Button type="submit" variant="primary" disabled={isSaving}>
-                  {isSaving ? `${t('common.save')}...` : t('common.save')}
+                  {isSaving ? 'Saving...' : 'Save changes'}
                 </Button>
               </div>
             </DialogFooter>
