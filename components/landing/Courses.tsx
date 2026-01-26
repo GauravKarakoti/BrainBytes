@@ -28,7 +28,10 @@ export function Courses() {
     <section className="space-y-20 px-4 py-8 sm:px-[10%] md:py-20">
       <AnimatedTitle>
         <h2 className="heading-section">
-          Choose your <span className="text-highlight-depth">language</span>
+          Select{' '}
+          <span className="text-highlight-depth">
+            Courses
+          </span>
         </h2>
       </AnimatedTitle>
       <div className="mx-auto max-w-screen-lg">
