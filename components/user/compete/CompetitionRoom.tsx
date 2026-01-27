@@ -144,7 +144,7 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
 
     return () => {
       pusherClient.unsubscribe(userChannelName);
-      if (matchChannel) {
+      if (matchChannel && match) {
         pusherClient.unsubscribe(`private-match-${match.id}`);
       }
       pusherClient.disconnect();
