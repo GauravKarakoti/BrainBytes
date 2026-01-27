@@ -1,6 +1,50 @@
 import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge'
+import { NextRequest, NextResponse } from 'next/server'
+import { handleCorsPreFlight, isOriginAllowed } from '@/lib/cors'
 
-export default withMiddlewareAuthRequired()
+// CORS headers to be applied to API responses
+const CORS_HEADERS = {
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  'Access-Control-Max-Age': '86400',
+  'Access-Control-Allow-Credentials': 'true',
+}
+
+// Middleware function to handle CORS and authentication
+function corsMiddleware(request: NextRequest) {
+  // Handle preflight requests
+  if (request.method === 'OPTIONS') {
+    const origin = request.headers.get('origin')
+
+    if (!origin || !isOriginAllowed(origin)) {
+      return new NextResponse(null, { status: 403 })
+    }
+
+    return new NextResponse(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        ...CORS_HEADERS,
+      },
+    })
+  }
+
+  return null
+}
+
+// Main middleware
+const authMiddleware = withMiddlewareAuthRequired()
+
+export default function middleware(request: NextRequest, event: any) {
+  // Apply CORS middleware first
+  const corsResponse = corsMiddleware(request)
+  if (corsResponse) {
+    return corsResponse
+  }
+
+  // Then apply auth middleware
+  return authMiddleware(request, event)
+}
 
 export const config = {
   // Protected UI routes - require authentication before accessing
