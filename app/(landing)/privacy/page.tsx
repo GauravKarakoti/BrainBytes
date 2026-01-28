@@ -1,6 +1,4 @@
 import React from "react";
-import Layout from "@/components/Layout"; // adjust based on your project structure
-
 export default function PrivacyPolicy() {
   return (
     <Layout>
