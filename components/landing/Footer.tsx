@@ -113,6 +113,14 @@ export function Footer() {
           )}
         </div>
       </MotionDiv>
+       <div className="space-x-4">
+    <a href="/terms" className="text-sm text-gray-500 hover:text-gray-900">
+      Terms & Conditions
+    </a>
+    <a href="/privacy" className="text-sm text-gray-500 hover:text-gray-900">
+      Privacy Policy
+    </a>
+  </div>
       <p className="text-center max-sm:text-sm">
         © {new Date().getFullYear()} — BrainBytes by{' '}
         <a
