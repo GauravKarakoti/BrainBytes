@@ -36,8 +36,12 @@ export async function POST(req: NextRequest) {
       session.subscription as string
     );
 
-    const currentPeriodEnd =
-      (subscription as any).current_period_end as number;
+    const subscriptionItem = subscription.items.data[0];
+    if (!subscriptionItem) {
+      return new NextResponse("No subscription items found", { status: 400 });
+    }
+
+    const currentPeriodEnd = subscriptionItem.current_period_end;
 
     await db.insert(userSubscription).values({
       userId: session.metadata.userId,
@@ -64,14 +68,17 @@ export async function POST(req: NextRequest) {
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-  const currentPeriodEnd =
-    (subscription as unknown as { current_period_end: number })
-      .current_period_end;
+  const subscriptionItem = subscription.items.data[0];
+  if (!subscriptionItem) {
+    return new NextResponse("No subscription items found", { status: 400 });
+  }
+
+  const currentPeriodEnd = subscriptionItem.current_period_end;
 
   await db
     .update(userSubscription)
     .set({
-      stripePriceId: subscription.items.data[0].price.id,
+      stripePriceId: subscriptionItem.price.id,
       stripeCurrentPeriodEnd: new Date(currentPeriodEnd * 1000),
     })
     .where(eq(userSubscription.stripeSubscriptionId, subscription.id));
