@@ -104,24 +104,36 @@ export async function upsertChallengeProgress(challengeId: number) {
   }
 
   if (!isCompleted) {
-    const currentPoints = currentUserProgress.points
-    const newPoints = currentPoints + POINTS_PER_CHALLENGE
-    const newLevelData = getLevelFromPoints(newPoints)
+    console.log(`[upsertChallengeProgress] Atomically incrementing points by ${POINTS_PER_CHALLENGE} and tokens by ${TOKENS_PER_CHALLENGE}`)
 
-    console.log('[upsertChallengeProgress] Updating user progress - points:', newPoints, 'level:', newLevelData.level)
-
-    // Accumulate pending tokens instead of minting immediately
-    const currentPendingTokens = currentUserProgress.pendingTokens || 0
-    const newPendingTokens = currentPendingTokens + TOKENS_PER_CHALLENGE
-
-    console.log(`[upsertChallengeProgress] Accumulating ${TOKENS_PER_CHALLENGE} tokens. Total pending: ${newPendingTokens}`)
-
+    // Use atomic database increment to prevent lost updates in concurrent scenarios
     await db
       .update(userProgress)
       .set({
-        points: newPoints,
+        points: sql`points + ${POINTS_PER_CHALLENGE}`,
+        pendingTokens: sql`pending_tokens + ${TOKENS_PER_CHALLENGE}`,
+      })
+      .where(eq(userProgress.userId, userId))
+
+    // Read the updated points to calculate the new level (read-after-write pattern)
+    const updatedProgress = await db.query.userProgress.findFirst({
+      where: eq(userProgress.userId, userId),
+    })
+
+    if (!updatedProgress) {
+      throw new Error('Failed to read updated user progress')
+    }
+
+    const newPoints = updatedProgress.points
+    const newLevelData = getLevelFromPoints(newPoints)
+
+    console.log('[upsertChallengeProgress] Updated points to:', newPoints, 'level:', newLevelData.level)
+
+    // Update the level based on the new points value
+    await db
+      .update(userProgress)
+      .set({
         level: newLevelData.level,
-        pendingTokens: newPendingTokens,
       })
       .where(eq(userProgress.userId, userId))
 
