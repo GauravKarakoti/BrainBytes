@@ -654,6 +654,43 @@ int main() {
         stubCodeCpp: cppStub,
         testCases: reverseStringTestCases,
       },
+            // New Languages MCQs
+      {
+        id: 27,
+        lessonId: 9,
+        type: 'SELECT',
+        order: 3,
+        question: 'Which keyword is used to declare a constant in Swift?',
+      },
+      {
+        id: 28,
+        lessonId: 9,
+        type: 'SELECT',
+        order: 4,
+        question: 'Which TypeScript feature allows defining variable types?',
+      },
+      {
+        id: 29,
+        lessonId: 9,
+        type: 'SELECT',
+        order: 5,
+        question: 'Which keyword is used to define a variable in Rust?',
+      },
+      {
+        id: 30,
+        lessonId: 9,
+        type: 'SELECT',
+        order: 6,
+        question: 'Which keyword is used to declare a function in Go?',
+      },
+      {
+        id: 31,
+        lessonId: 9,
+        type: 'SELECT',
+        order: 7,
+        question: 'Which keyword is used to declare a variable in Kotlin?',
+      },
+
     ]).onConflictDoUpdate({
       target: schema.challenges.id,
       set: {
@@ -1222,6 +1259,36 @@ int main() {
         imageSrc: null,
         audioSrc: null,
       },
+            // Challenge 27: Swift constant
+      { id: 67, challengeId: 27, option: 'let', correct: true, imageSrc: null, audioSrc: null },
+      { id: 68, challengeId: 27, option: 'var', correct: false, imageSrc: null, audioSrc: null },
+      { id: 69, challengeId: 27, option: 'const', correct: false, imageSrc: null, audioSrc: null },
+      { id: 70, challengeId: 27, option: 'static', correct: false, imageSrc: null, audioSrc: null },
+
+      // Challenge 28: TypeScript typing
+      { id: 71, challengeId: 28, option: 'Type annotations', correct: true, imageSrc: null, audioSrc: null },
+      { id: 72, challengeId: 28, option: 'Hoisting', correct: false, imageSrc: null, audioSrc: null },
+      { id: 73, challengeId: 28, option: 'Closures', correct: false, imageSrc: null, audioSrc: null },
+      { id: 74, challengeId: 28, option: 'Promises', correct: false, imageSrc: null, audioSrc: null },
+
+      // Challenge 29: Rust variable
+      { id: 75, challengeId: 29, option: 'let', correct: true, imageSrc: null, audioSrc: null },
+      { id: 76, challengeId: 29, option: 'var', correct: false, imageSrc: null, audioSrc: null },
+      { id: 77, challengeId: 29, option: 'mut', correct: false, imageSrc: null, audioSrc: null },
+      { id: 78, challengeId: 29, option: 'define', correct: false, imageSrc: null, audioSrc: null },
+
+      // Challenge 30: Go function
+      { id: 79, challengeId: 30, option: 'func', correct: true, imageSrc: null, audioSrc: null },
+      { id: 80, challengeId: 30, option: 'function', correct: false, imageSrc: null, audioSrc: null },
+      { id: 81, challengeId: 30, option: 'def', correct: false, imageSrc: null, audioSrc: null },
+      { id: 82, challengeId: 30, option: 'fn', correct: false, imageSrc: null, audioSrc: null },
+
+      // Challenge 31: Kotlin variable
+      { id: 83, challengeId: 31, option: 'val', correct: true, imageSrc: null, audioSrc: null },
+      { id: 84, challengeId: 31, option: 'var', correct: false, imageSrc: null, audioSrc: null },
+      { id: 85, challengeId: 31, option: 'let', correct: false, imageSrc: null, audioSrc: null },
+      { id: 86, challengeId: 31, option: 'const', correct: false, imageSrc: null, audioSrc: null },
+
     ]).onConflictDoUpdate({
       target: schema.challengeOptions.id,
       set: {
