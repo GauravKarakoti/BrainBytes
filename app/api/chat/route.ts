@@ -207,8 +207,11 @@ export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV !== 'development') {
     try {
       const { tier, limit } = await resolveUserTier(user)
-      rlLimit = limit
-      const rl = await checkRateLimit(user.id, rlLimit)
+      const route = '/api/chat'
+      const effectiveLimit = Math.min(limit, 10)
+
+      rlLimit = effectiveLimit
+      const rl = await checkRateLimit(user.id, rlLimit, route)
       // Attach rate limit headers on responses
       if (!rl.allowed) {
         let response = new NextResponse('Too Many Requests', {
