@@ -17,6 +17,11 @@ const WINDOW_MS = 60_000 // 1 minute
 const store = new Map<string, { count: number; windowStart: number }>()
 
 export async function resolveUserTier(user: any): Promise<{ tier: Tier; limit: number }> {
+  const userId = user?.id
+
+  if(!userId) {
+    return {tier: 'standard', limit: DEFAULT_LIMITS.standard}
+  }
   // Admin check
   const isAdmin = await getIsAdmin()
   if (isAdmin) return { tier: 'admin', limit: DEFAULT_LIMITS.admin }
@@ -28,23 +33,23 @@ export async function resolveUserTier(user: any): Promise<{ tier: Tier; limit: n
   return { tier: 'standard', limit: DEFAULT_LIMITS.standard }
 }
 
-export async function checkRateLimit(userId: string, limit: number) {
-  const key = `rl:${userId}`
+export async function checkRateLimit(userId: string, limit: number, route: string) {
+  const key = `rl:${userId}:${route}`
   const now = Date.now()
   const entry = store.get(key)
 
   if (!entry || now - entry.windowStart >= WINDOW_MS) {
     store.set(key, { count: 1, windowStart: now })
-    return { allowed: true, remaining: limit - 1, reset: now + WINDOW_MS }
+    return { allowed: true, remaining: limit - 1, reset: now + WINDOW_MS, limit }
   }
 
   if (entry.count >= limit) {
-    return { allowed: false, remaining: 0, reset: entry.windowStart + WINDOW_MS }
+    return { allowed: false, remaining: 0, reset: entry.windowStart + WINDOW_MS, limit }
   }
 
   entry.count += 1
   store.set(key, entry)
-  return { allowed: true, remaining: Math.max(0, limit - entry.count), reset: entry.windowStart + WINDOW_MS }
+  return { allowed: true, remaining: Math.max(0, limit - entry.count), reset: entry.windowStart + WINDOW_MS, limit }
 }
 
 // Used by tests to reset state
