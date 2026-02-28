@@ -34,6 +34,7 @@ export async function resolveUserTier(user: any): Promise<{ tier: Tier; limit: n
 }
 
 export async function checkRateLimit(userId: string, limit: number, route: string) {
+  //console.log('Store size:', store.size)
   const key = `rl:${userId}:${route}`
   const now = Date.now()
   const entry = store.get(key)

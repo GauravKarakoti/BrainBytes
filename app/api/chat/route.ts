@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
+import { metisGoerli } from "viem/chains";
 
 const ai: GoogleGenAI = (() => {
   if (!process.env.GOOGLE_API_KEY) {
@@ -138,6 +139,10 @@ function extractTextFromCandidate(candidate: any): string {
 }
 
 export async function POST(req: NextRequest) {
+  const origin = req.headers.get('origin')
+  if(!isOriginAllowed(origin)){
+    return new NextResponse('Forbidden', {status: 403})
+  }
   // Require authentication before processing chat requests
   // This enables per-user rate limiting and audit logging
   let user
@@ -178,35 +183,56 @@ export async function POST(req: NextRequest) {
   }
 
   // Note: only the first message is processed by this endpoint
-  const userMessage = messages[0]
+  // const userMessage = messages[0]
 
-  // Validate message structure before attempting to extract text
-  if (!isValidMessage(userMessage)) {
-    console.warn('[chat] Invalid message structure')
-    let response = new NextResponse(
-      "Invalid message structure: message must include non-empty text in 'content', 'text', or 'parts'",
-      { status: 400 },
-    )
-    const origin = req.headers.get('origin')
-    response = addCorsHeaders(response, origin)
-    return response
-  }
+  // // Validate message structure before attempting to extract text
+  // if (!isValidMessage(userMessage)) {
+  //   console.warn('[chat] Invalid message structure')
+  //   let response = new NextResponse(
+  //     "Invalid message structure: message must include non-empty text in 'content', 'text', or 'parts'",
+  //     { status: 400 },
+  //   )
+  //   const origin = req.headers.get('origin')
+  //   response = addCorsHeaders(response, origin)
+  //   return response
+  // }
 
-  const userText = extractTextFromMessage(userMessage)
+  // const userText = extractTextFromMessage(userMessage)
 
-  if (!userText) {
-    console.warn('[chat] Invalid message: contains no non-empty text content')
-    let response = new NextResponse('Invalid message: contains no non-empty text content', { status: 400 })
-    const origin = req.headers.get('origin')
-    response = addCorsHeaders(response, origin)
-    return response
-  }
-
+  // if (!userText) {
+  //   console.warn('[chat] Invalid message: contains no non-empty text content')
+  //   let response = new NextResponse('Invalid message: contains no non-empty text content', { status: 400 })
+  //   const origin = req.headers.get('origin')
+  //   response = addCorsHeaders(response, origin)
+  //   return response
+  // }
+  const formattedMessages = messages
+    .filter(isValidMessage)
+    .map((msg: any) =>{
+      const text = extractTextFromMessage(msg)
+      return {
+        role: msg.role === 'assistant' ? 'model': 'user',
+        parts: [{text: text || ' '}]
+      }
+    })
+    if (formattedMessages.length === 0) {
+      let response = new NextResponse('No valid messages provided', {status: 400})
+      const origin = req.headers.get('origin')
+      response = addCorsHeaders(response, origin)
+      return response
+    }
+  console.log('ENABLE_RATE_LIMIT:', process.env.ENABLE_RATE_LIMIT)
   // Rate limiting: determine tier and enforce limits (disabled in development)
   let rlLimit = 5
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.ENABLE_RATE_LIMIT === 'true') {
     try {
       const { tier, limit } = await resolveUserTier(user)
+     
+      if(!user?.id){
+        let response = new NextResponse('Unauthorized', {status: 401})
+        response = addCorsHeaders(response, origin)
+        return response
+      }
       const route = '/api/chat'
       const effectiveLimit = Math.min(limit, 10)
 
@@ -242,8 +268,19 @@ export async function POST(req: NextRequest) {
   let result: any
   try {
     result = await getAI().models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: systemPrompt + userText,
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+        role: 'user',
+        parts: [{text: systemPrompt}]
+        },
+        ...formattedMessages
+      ],
+      config: {
+        temperature: 0.7,
+        topP: 0.9
+      }
+      
     })
   } catch (err: any) {
     console.error('[chat] AI generation failed:', {
@@ -317,11 +354,14 @@ export async function POST(req: NextRequest) {
   const rateLimitInfo = (user as any)._rateLimit
   const rateLimitLimit = (user as any)._rateLimitLimit
   const headers: Record<string,string> = {}
-  if (typeof rateLimitLimit === 'number') headers['X-RateLimit-Limit'] = String(rateLimitLimit)
-  if (rateLimitInfo) headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+  if (typeof rateLimitLimit === 'number') 
+    headers['X-RateLimit-Limit'] = String(rateLimitLimit)
 
+  if (rateLimitInfo) {
+    headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+  }
   let response = new NextResponse(textResult, { headers })
-  const origin = req.headers.get('origin')
+  //const origin = req.headers.get('origin')
   response = addCorsHeaders(response, origin)
   return response
 }

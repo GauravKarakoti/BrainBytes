@@ -7,6 +7,7 @@ import { userProgress } from '@/db/schema'
 import { requireUser } from '@/lib/auth0'
 import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
 
+
 const FALLBACK_AVATAR = '/logo.svg'
 const FALLBACK_NAME = 'Learner'
 
@@ -69,8 +70,45 @@ function validateAvatarUrl(value: string | null | undefined) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const user = await requireUser()
-
+  
+   const user = await requireUser()
+  //  if (process.env.NODE_ENV !== 'development') {
+  //     try {
+  //       const { limit } = await resolveUserTier(user)
+       
+  //       if(!user?.id){
+  //         let response = new NextResponse('Unauthorized', {status: 401})
+  //         response = addCorsHeaders(response, origin)
+  //         return response
+  //       }
+  //       const route = '/api/user/profile'
+  //       // const effectiveLimit = Math.min(limit, 10)
+  
+  //       // rlLimit = effectiveLimit
+  //       const rl = await checkRateLimit(user.id, limit, route)
+  //       // Attach rate limit headers on responses
+  //       if (!rl.allowed) {
+  //         let response = new NextResponse('Too Many Requests', {
+  //           status: 429,
+  //           headers: {
+  //             'X-RateLimit-Limit': String(limit),
+  //             'X-RateLimit-Remaining': String(rl.remaining),
+  //             'X-RateLimit-Reset': String(rl.reset),
+  //           },
+  //         })
+  //         //const origin = req.headers.get('origin')
+  //         response = addCorsHeaders(response, origin)
+  //         return response
+  //       }
+  
+  //       // Attach rate limit headers for successful attempt (will be returned later)
+  //       ;(user as any)._rateLimit = rl
+  //       ;(user as any)._rateLimitLimit = limit
+  //     } catch (err) {
+  //       console.error('[profile] Rate limit check failed:', err)
+  //       // Continue without rate limiting on unexpected errors but log it
+  //     }
+  //   }
   let payload: UpdateProfileBody
   try {
     payload = (await request.json()) as UpdateProfileBody
