@@ -15,10 +15,13 @@
     "db:studio": "pnpm env:load pnpm drizzle-kit studio",
     "db:push": "pnpm env:load pnpm drizzle-kit push",
     "db:seed": "pnpm env:load pnpm tsx ./scripts/seed.ts",
+    "db:seed:languages": "pnpm env:load pnpm tsx ./scripts/seed-languages.ts",
+    "db:seed:all": "pnpm db:seed && pnpm db:seed:languages",
     "db:test-seed": "pnpm env:load pnpm tsx ./scripts/test-seed.ts",
     "db:update-users": "pnpm env:load pnpm tsx ./scripts/update-user-data.ts",
+    "prepare": "husky install",
     "test": "vitest",
-    "test:unit": "vitest run",
+    "test:unit": "vitest -c vitest.config.ts test/**/*.test.{ts,tsx}",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
@@ -41,6 +44,8 @@
     "@vercel/speed-insights": "^1.0.11",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.30.10",
     "framer-motion": "^11.1.7",
@@ -99,7 +104,9 @@
     "ethers": "^6.15.0",
     "hardhat": "^2.27.0",
     "hardhat-gas-reporter": "^2.3.0",
+    "husky": "^9.1.7",
     "jsdom": "^24.0.0",
+    "lint-staged": "^16.2.7",
     "pg": "^8.11.5",
     "pino-pretty": "^13.1.2",
     "postcss": "^8",
@@ -112,13 +119,17 @@
     "tsx": "^4.11.0",
     "typechain": "^8.3.2",
     "typescript": "^5.4.5",
-    "vitest": "^4.0.16"
-    "vitest": "^1.6.0",
+    "vitest": "^4.0.16",
     "@testing-library/react": "^14.2.1",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/user-event": "^14.5.2",
     "@vitest/coverage-v8": "^1.6.0",
-    "jsdom": "^24.0.0"
-    "vitest": "^1.6.0"
+    "jsdom": "^24.0.0",
+    "lint-staged": {
+      "*.{js,jsx,ts,tsx}": [
+        "eslint --fix",
+        "prettier --write"
+      ]
+    }
   }
 }

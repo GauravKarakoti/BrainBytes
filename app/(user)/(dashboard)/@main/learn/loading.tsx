@@ -1,9 +1,8 @@
-// app/user/dashboard/learn/loading.tsx
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function LearnLoading() {
   return (
-    <div className="">
+    <div>
       {/* Header with back button */}
       <div className="sticky top-0 mb-5 flex items-center justify-between border-b-2 bg-background pb-2 sm:z-50">
         <div className="flex items-center gap-4">
@@ -36,7 +35,10 @@ export default function LearnLoading() {
           {/* Lessons grid skeleton */}
           <div className="grid gap-3">
             {Array.from({ length: 5 }).map((_, j) => (
-              <div key={j} className="flex items-center justify-between rounded-lg border p-4">
+              <div
+                key={j}
+                className="flex items-center justify-between rounded-lg border p-4"
+              >
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-10 w-10 rounded-lg" />
                   <div className="space-y-2">

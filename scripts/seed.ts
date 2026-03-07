@@ -1258,6 +1258,15 @@ int main() {
       },
     })
 
+    console.log('🔄 Syncing sequences...')
+    // This tells Postgres: "Look at the highest ID in the table, and set the counter to that number."
+    await database.execute(sql`SELECT setval('courses_id_seq', (SELECT MAX(id) FROM courses))`)
+    await database.execute(sql`SELECT setval('units_id_seq', (SELECT MAX(id) FROM units))`)
+    await database.execute(sql`SELECT setval('lessons_id_seq', (SELECT MAX(id) FROM lessons))`)
+    await database.execute(sql`SELECT setval('challenges_id_seq', (SELECT MAX(id) FROM challenges))`)
+    await database.execute(sql`SELECT setval('challenge_options_id_seq', (SELECT MAX(id) FROM challenge_options))`)
+    await database.execute(sql`SELECT setval('quests_id_seq', (SELECT MAX(id) FROM quests))`)
+
     console.log('✅ [DB]: Seeded 100%!')
   } catch (error) {
     console.error(error)

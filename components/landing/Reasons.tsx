@@ -4,7 +4,7 @@ import { ReasonsItem } from '@/components/landing/ReasonsItem'
 
 export function Reasons() {
   return (
-    <section className="space-y-28 px-1 pb-1">
+    <section className="space-y-16 px-1 pb-1 sm:space-y-28">
       <AnimatedTitle>
         <h2 className="heading-section">
           The <span className="text-highlight-depth">future</span> of{' '}

@@ -8,6 +8,7 @@ import { PracticeModal } from '@/components/modals/practice-modal'
 import { AppProviders } from '@/components/providers'
 import { sharedMetadata } from '@/config/metadata'
 import { Chatbot } from '@/components/chatbot/Chatbot'
+import { ScrollToTop } from '@/components/scroll-to-top'
 
 import { fonts } from '@/styles/fonts'
 import '@/styles/globals.css'
@@ -32,24 +33,26 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={fonts}>
       <body className="flex flex-col font-sans">
         <UserProvider>
-          {/* No ThemeProvider wrapper - AppProviders already has it */}
-          <AppProviders>
-            <ExitModal />
-            <HeartsModal />
-            <PracticeModal />
-            {children}
-            <Chatbot />
-            <Toaster 
-              position="top-right" 
-              richColors 
-              expand={true}
-              closeButton
-              duration={4000}
-              toastOptions={{
-                className: 'font-sans',
-              }}
-            />
-          </AppProviders>
+          <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
+            <AppProviders>
+              <ExitModal />
+              <HeartsModal />
+              <PracticeModal />
+              {children}
+              <ScrollToTop />
+              <Chatbot />
+              <Toaster 
+                position="top-right" 
+                richColors 
+                expand={true}
+                closeButton
+                duration={4000}
+                toastOptions={{
+                  className: 'font-sans',
+                }}
+              />
+            </AppProviders>
+          </ThemeProvider>
         </UserProvider>
         <Analytics />
       </body>

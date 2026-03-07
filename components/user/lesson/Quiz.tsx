@@ -33,10 +33,12 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
     setSelectedOption(optionId)
   }
 
-  const handleCheck = () => {
-    if (selectedOption === null) return
+  const handleCheck = async () => {
+    if (selectedOption === null || isChecking) return
 
-    const option = challenge.challengeOptions.find((o) => o.id === selectedOption)
+    const option = challenge.challengeOptions.find(
+      (o) => o.id === selectedOption
+    )
     
     if (!option) return
 
@@ -45,40 +47,27 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
 
     if (option.correct) {
       play('correct')
+      startTransition(() => {
+        upsertChallengeProgress(challenge.id)
+      })
+      // Show feedback for 2 seconds before moving to next question
       setTimeout(() => {
-        startTransition(() => {
-          upsertChallengeProgress(challenge.id)
-            .then((result) => {
-              if (result?.error === 'already_completed') {
-                // Challenge already completed, just move to next one
-                console.log('Challenge already completed, moving to next')
-                onComplete()
-              } else if (result?.error) {
-                toast.error('Failed to save progress')
-                console.error('Challenge progress error:', result.error)
-              } else {
-                onComplete()
-              }
-            })
-            .catch((error) => {
-              console.error('Challenge progress error:', error)
-              toast.error('Something went wrong')
-            })
-        })
-      }, 1000)
+        onComplete()
+      }, 2000)
     } else {
       play('incorrect')
-      startTransition(() => {
-        reduceHearts()
-          .then((res) => {
-            if (res?.error === 'hearts') {
-              toast.error('No hearts left!')
-            }
-          })
-          .catch((error) => {
-            console.error('Hearts error:', error)
-            toast.error('Something went wrong')
-          })
+      startTransition(async() => {
+        try{
+          const res = await reduceHearts()
+          if (res?.error === 'hearts') {
+            toast.error('No hearts left!')
+          }
+        } catch(error) {
+          console.error('Hearts error:', error)
+          toast.error('Something went wrong')
+        } finally{
+          setIsChecking(false)
+        }
       })
     }
   }
@@ -133,28 +122,36 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">❤️</span>
-          <span className="text-xl font-bold">{hearts}</span>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
+        <div className="flex items-center gap-2 order-2 sm:order-1">
+          <span className="text-xl sm:text-2xl">❤️</span>
+          <span className="text-lg sm:text-xl font-bold">{hearts}</span>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
           {isCorrect === null ? (
             <Button
               onClick={handleCheck}
-              disabled={selectedOption === null || isPending}
+              disabled={selectedOption === null || isChecking}
               variant="primary"
               size="lg"
-              className="w-full sm:w-auto"
-            >
-              Check Answer
+              className="w-full sm:w-auto text-sm sm:text-base px-4 flex items-center justify-center"
+              >
+                {isChecking &&(
+                  <div className="mr-2 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                )}
+                {isChecking? "Checking..." :" Check Answer"}
+              
             </Button>
           ) : isCorrect ? (
-            <Button onClick={handleContinue} disabled={isPending} variant="primary" size="lg" className="w-full sm:w-auto">
+            <Button 
+            onClick={handleContinue} 
+            disabled={false}
+             variant="primary" size="lg" 
+             className="w-full sm:w-auto text-sm sm:text-base px-4">
               Continue
             </Button>
           ) : (
-            <Button onClick={handleContinue} variant="ghost" size="lg" className="w-full sm:w-auto">
+            <Button onClick={handleContinue} variant="ghost" size="lg" className="w-full sm:w-auto text-sm sm:text-base px-4">
               Try Again
             </Button>
           )}
