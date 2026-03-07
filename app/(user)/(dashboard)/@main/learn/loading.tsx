@@ -1,33 +1,56 @@
-import React from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function LearnLoading() {
   return (
-    <div className="">
-      <div className="sticky top-0 mb-5 flex items-center justify-between border-b-2 bg-background pb-2 text-muted-foreground sm:z-50">
-        <Skeleton className="h-6 w-6" />
-        <Skeleton className="h-6 w-32" />
+    <div>
+      {/* Header with back button */}
+      <div className="sticky top-0 mb-5 flex items-center justify-between border-b-2 bg-background pb-2 sm:z-50">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-7 w-48" />
+        </div>
       </div>
 
-      {Array.from({ length: 3 }).map((_, unitIndex) => (
-        <section key={unitIndex} className="space-y-10 pb-16">
-          <header className="flex w-full items-center justify-between rounded-xl p-5">
-            <div className="space-y-1">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-6 w-64" />
+      {/* Multiple units skeleton */}
+      {Array.from({ length: 2 }).map((_, i) => (
+        <div key={i} className="mb-8 rounded-xl border p-6">
+          {/* Unit title and description */}
+          <div className="mb-6 space-y-2">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-6 w-56" />
             </div>
-            <Skeleton className="h-10 w-20" />
-          </header>
-          <ul className="flex flex-col items-center space-y-5">
-            {Array.from({ length: 5 }).map((_, lessonIndex) => (
-              <li key={lessonIndex}>
-                <div className="relative">
-                  <Skeleton className="h-16 w-64" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+
+          {/* Progress bar skeleton */}
+          <div className="mb-6 space-y-2">
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+            <Skeleton className="h-2 w-full rounded-full" />
+          </div>
+
+          {/* Lessons grid skeleton */}
+          <div className="grid gap-3">
+            {Array.from({ length: 5 }).map((_, j) => (
+              <div
+                key={j}
+                className="flex items-center justify-between rounded-lg border p-4"
+              >
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
                 </div>
-              </li>
+                <Skeleton className="h-9 w-20 rounded-lg" />
+              </div>
             ))}
-          </ul>
-        </section>
+          </div>
+        </div>
       ))}
     </div>
   )
