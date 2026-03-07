@@ -21,7 +21,7 @@
     "db:update-users": "pnpm env:load pnpm tsx ./scripts/update-user-data.ts",
     "prepare": "husky install",
     "test": "vitest",
-    "test:unit": "vitest run",
+    "test:unit": "vitest -c vitest.config.ts test/**/*.test.{ts,tsx}",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
@@ -119,9 +119,12 @@
     "tsx": "^4.11.0",
     "typechain": "^8.3.2",
     "typescript": "^5.4.5",
-    "vitest": "^1.6.0"
-  },
-  "lint-staged": {
+    "vitest": "^1.6.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "jsdom": "^22.0.0",
+    "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
       "prettier --write"

@@ -5,23 +5,16 @@ import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
 import { metisGoerli } from "viem/chains";
 
-const ai: GoogleGenAI = (() => {
-  if (!process.env.GOOGLE_API_KEY) {
-    // Allow build to pass without API key
-    if (process.env.NODE_ENV === 'production') {
-      console.warn('GOOGLE_API_KEY is not set');
-    }
-    // Return a dummy instance or handle it gracefully
-    // For build purposes, we can just return a dummy object casted as GoogleGenAI
-    // or better, just use a mock key if we are just building
-    return new GoogleGenAI({ apiKey: "mock-key-for-build" });
-  }
-  return new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
-})();
+const googleApiKey =
+  process.env.GOOGLE_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 
-function getAI() {
-  return ai;
+if (!googleApiKey) {
+  throw new Error(
+    "GoogleGenAI API key is not set. Please define GOOGLE_API_KEY or NEXT_PUBLIC_GOOGLE_API_KEY in the environment.",
+  );
 }
+
+const ai = new GoogleGenAI({ apiKey: googleApiKey });
 export const maxDuration = 30;
 
 const systemPrompt = `
@@ -222,42 +215,45 @@ export async function POST(req: NextRequest) {
       return response
     }
   console.log('ENABLE_RATE_LIMIT:', process.env.ENABLE_RATE_LIMIT)
-  // Rate limiting: determine tier and enforce limits (disabled in development)
+
+  // Rate limiting
   let rlLimit = 5
+  let rateLimitInfo: { allowed: boolean; remaining: number; reset: number } | undefined
+  let rateLimitLimit: number | undefined
+
   if (process.env.ENABLE_RATE_LIMIT === 'true') {
     try {
-      const { tier, limit } = await resolveUserTier(user)
-     
-      if(!user?.id){
-        let response = new NextResponse('Unauthorized', {status: 401})
+      const { limit } = await resolveUserTier(user)
+
+      if (!user?.id) {
+        let response = new NextResponse('Unauthorized', { status: 401 })
         response = addCorsHeaders(response, origin)
         return response
       }
+
       const route = '/api/chat'
       const effectiveLimit = Math.min(limit, 10)
 
       rlLimit = effectiveLimit
       const rl = await checkRateLimit(user.id, rlLimit, route)
-      // Attach rate limit headers on responses
+
       if (!rl.allowed) {
         let response = new NextResponse('Too Many Requests', {
           status: 429,
           headers: {
             'X-RateLimit-Limit': String(rlLimit),
             'X-RateLimit-Remaining': String(rl.remaining),
+            'X-RateLimit-Reset': String(Math.floor(rl.reset / 1000)),
           },
         })
-        const origin = req.headers.get('origin')
         response = addCorsHeaders(response, origin)
         return response
       }
 
-      // Attach rate limit headers for successful attempt (will be returned later)
-      ;(user as any)._rateLimit = rl
-      ;(user as any)._rateLimitLimit = rlLimit
+      rateLimitInfo = rl
+      rateLimitLimit = rlLimit
     } catch (err) {
       console.error('[chat] Rate limit check failed:', err)
-      // Continue without rate limiting on unexpected errors but log it
     }
   }
 
@@ -267,12 +263,12 @@ export async function POST(req: NextRequest) {
   // Call the AI model
   let result: any
   try {
-    result = await getAI().models.generateContent({
+    result = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [
         {
-        role: 'user',
-        parts: [{text: systemPrompt}]
+          role: 'user',
+          parts: [{ text: systemPrompt }]
         },
         ...formattedMessages
       ],
@@ -280,7 +276,6 @@ export async function POST(req: NextRequest) {
         temperature: 0.7,
         topP: 0.9
       }
-      
     })
   } catch (err: any) {
     console.error('[chat] AI generation failed:', {
@@ -338,6 +333,9 @@ export async function POST(req: NextRequest) {
   // Handle direct content string
   else if (typeof result?.content === 'string') {
     textResult = result.content
+  } else if (typeof result?.response?.text === 'function') {
+    // Some SDK shapes (mock) return getGenerativeModel().generateContent() -> { response: { text: () => '...' } }
+    textResult = result.response.text()
   }
 
   if (!textResult || !textResult.trim()) {
@@ -351,14 +349,17 @@ export async function POST(req: NextRequest) {
   // Log response metadata (avoid logging content)
   console.log('[chat] Responding with generated text (length)', { length: textResult.length })
 
-  const rateLimitInfo = (user as any)._rateLimit
-  const rateLimitLimit = (user as any)._rateLimitLimit
-  const headers: Record<string,string> = {}
-  if (typeof rateLimitLimit === 'number') 
+  const headers: Record<string, string> = {}
+
+  if (typeof rateLimitLimit === 'number') {
     headers['X-RateLimit-Limit'] = String(rateLimitLimit)
+  }
 
   if (rateLimitInfo) {
     headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+    if (rateLimitInfo.reset != null) {
+      headers['X-RateLimit-Reset'] = String(Math.floor(rateLimitInfo.reset / 1000))
+    }
   }
   let response = new NextResponse(textResult, { headers })
   //const origin = req.headers.get('origin')

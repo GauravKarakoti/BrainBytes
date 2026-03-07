@@ -4,14 +4,14 @@ import { revalidateTag } from 'next/cache'
 import { db } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { ethers } from 'ethers'
+import { isAddress } from 'viem'
 import { requireUser } from '@/lib/auth0'
 
 export const savewallet_address = async (wallet_address: string) => {
   const user = await requireUser()
   const userId = user.id
 
-  if (!ethers.isAddress(wallet_address)) {
+  if (!isAddress(wallet_address)) {
     return { error: 'Invalid wallet address' }
   }
 

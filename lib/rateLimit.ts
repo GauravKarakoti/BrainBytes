@@ -23,11 +23,11 @@ export async function resolveUserTier(user: any): Promise<{ tier: Tier; limit: n
     return {tier: 'standard', limit: DEFAULT_LIMITS.standard}
   }
   // Admin check
-  const isAdmin = await getIsAdmin()
+  const isAdmin = await getIsAdmin(userId)
   if (isAdmin) return { tier: 'admin', limit: DEFAULT_LIMITS.admin }
 
-  // Premium subscription
-  const sub = await getUserSubscription()
+  // Premium subscription - prefer explicit user id when provided
+  const sub = await getUserSubscription(user?.id)
   if (sub && sub.isActive) return { tier: 'premium', limit: DEFAULT_LIMITS.premium }
 
   return { tier: 'standard', limit: DEFAULT_LIMITS.standard }
