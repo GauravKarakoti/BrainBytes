@@ -22,10 +22,6 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
       },
-      {
-        protocol: 'https',
-        hostname: 'img.clerk.com',
-      },
     ],
   },
   webpack(config) {
@@ -59,9 +55,7 @@ const nextConfig = {
     return config
   },
 
-  experimental: {
-    typedRoutes: true,
-  },
+
   logging: {
     fetches: {
       fullUrl: true,

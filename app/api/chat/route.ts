@@ -1,25 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
+import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
+import { metisGoerli } from "viem/chains";
 
-const ai: GoogleGenAI = (() => {
-  if (!process.env.GOOGLE_API_KEY) {
-    // Allow build to pass without API key
-    if (process.env.NODE_ENV === 'production') {
-      console.warn('GOOGLE_API_KEY is not set');
-    }
-    // Return a dummy instance or handle it gracefully
-    // For build purposes, we can just return a dummy object casted as GoogleGenAI
-    // or better, just use a mock key if we are just building
-    return new GoogleGenAI({ apiKey: "mock-key-for-build" });
-  }
-  return new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
-})();
+const googleApiKey =
+  process.env.GOOGLE_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 
-function getAI() {
-  return ai;
+if (!googleApiKey) {
+  throw new Error(
+    "GoogleGenAI API key is not set. Please define GOOGLE_API_KEY or NEXT_PUBLIC_GOOGLE_API_KEY in the environment.",
+  );
 }
+
+const ai = new GoogleGenAI({ apiKey: googleApiKey });
 export const maxDuration = 30;
 
 const systemPrompt = `
@@ -136,14 +131,26 @@ function extractTextFromCandidate(candidate: any): string {
   return ''
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const origin = req.headers.get('origin')
+  if(!isOriginAllowed(origin)){
+    return new NextResponse('Forbidden', {status: 403})
+  }
   // Require authentication before processing chat requests
   // This enables per-user rate limiting and audit logging
   let user
   try {
     user = await requireUser()
   } catch (error) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    // In development, allow unauthenticated access for testing
+    if (process.env.NODE_ENV === 'development') {
+      user = { id: 'anonymous-dev-user' }
+    } else {
+      let response = new NextResponse('Unauthorized', { status: 401 })
+      const origin = req.headers.get('origin')
+      response = addCorsHeaders(response, origin)
+      return response
+    }
   }
 
   // Parse and validate incoming JSON
@@ -152,59 +159,102 @@ export async function POST(req: Request) {
     body = await req.json()
   } catch (err) {
     console.error('[chat] Invalid JSON payload:', err)
-    return new NextResponse("Request body must be valid JSON with a 'messages' array", { status: 400 })
+    let response = new NextResponse("Request body must be valid JSON with a 'messages' array", { status: 400 })
+    const origin = req.headers.get('origin')
+    response = addCorsHeaders(response, origin)
+    return response
   }
 
   const messages = body?.messages
 
   if (!Array.isArray(messages) || messages.length === 0) {
     console.warn('[chat] Missing or invalid "messages" array')
-    return new NextResponse('Invalid messages: expected non-empty array', { status: 400 })
+    let response = new NextResponse('Invalid messages: expected non-empty array', { status: 400 })
+    const origin = req.headers.get('origin')
+    response = addCorsHeaders(response, origin)
+    return response
   }
 
   // Note: only the first message is processed by this endpoint
-  const userMessage = messages[0]
+  // const userMessage = messages[0]
 
-  // Validate message structure before attempting to extract text
-  if (!isValidMessage(userMessage)) {
-    console.warn('[chat] Invalid message structure')
-    return new NextResponse(
-      "Invalid message structure: message must include non-empty text in 'content', 'text', or 'parts'",
-      { status: 400 },
-    )
-  }
+  // // Validate message structure before attempting to extract text
+  // if (!isValidMessage(userMessage)) {
+  //   console.warn('[chat] Invalid message structure')
+  //   let response = new NextResponse(
+  //     "Invalid message structure: message must include non-empty text in 'content', 'text', or 'parts'",
+  //     { status: 400 },
+  //   )
+  //   const origin = req.headers.get('origin')
+  //   response = addCorsHeaders(response, origin)
+  //   return response
+  // }
 
-  const userText = extractTextFromMessage(userMessage)
+  // const userText = extractTextFromMessage(userMessage)
 
-  if (!userText) {
-    console.warn('[chat] Invalid message: contains no non-empty text content')
-    return new NextResponse('Invalid message: contains no non-empty text content', { status: 400 })
-  }
-
-  // Rate limiting: determine tier and enforce limits
-  let rlLimit = 5
-  try {
-    const { tier, limit } = await resolveUserTier(user)
-    rlLimit = limit
-    const rl = await checkRateLimit(user.id, rlLimit)
-    // Attach rate limit headers on responses
-    if (!rl.allowed) {
-      return new NextResponse('Too Many Requests', {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': String(rlLimit),
-          'X-RateLimit-Remaining': String(rl.remaining),
-        },
-      })
+  // if (!userText) {
+  //   console.warn('[chat] Invalid message: contains no non-empty text content')
+  //   let response = new NextResponse('Invalid message: contains no non-empty text content', { status: 400 })
+  //   const origin = req.headers.get('origin')
+  //   response = addCorsHeaders(response, origin)
+  //   return response
+  // }
+  const formattedMessages = messages
+    .filter(isValidMessage)
+    .map((msg: any) =>{
+      const text = extractTextFromMessage(msg)
+      return {
+        role: msg.role === 'assistant' ? 'model': 'user',
+        parts: [{text: text || ' '}]
+      }
+    })
+    if (formattedMessages.length === 0) {
+      let response = new NextResponse('No valid messages provided', {status: 400})
+      const origin = req.headers.get('origin')
+      response = addCorsHeaders(response, origin)
+      return response
     }
+  console.log('ENABLE_RATE_LIMIT:', process.env.ENABLE_RATE_LIMIT)
 
-    // Attach rate limit headers for successful attempt (will be returned later)
-    // We'll include these headers on the final response below by capturing rl
-    ;(user as any)._rateLimit = rl
-    ;(user as any)._rateLimitLimit = rlLimit
-  } catch (err) {
-    console.error('[chat] Rate limit check failed:', err)
-    // Continue without rate limiting on unexpected errors but log it
+  // Rate limiting
+  let rlLimit = 5
+  let rateLimitInfo: { allowed: boolean; remaining: number; reset: number } | undefined
+  let rateLimitLimit: number | undefined
+
+  if (process.env.ENABLE_RATE_LIMIT === 'true') {
+    try {
+      const { limit } = await resolveUserTier(user)
+
+      if (!user?.id) {
+        let response = new NextResponse('Unauthorized', { status: 401 })
+        response = addCorsHeaders(response, origin)
+        return response
+      }
+
+      const route = '/api/chat'
+      const effectiveLimit = Math.min(limit, 10)
+
+      rlLimit = effectiveLimit
+      const rl = await checkRateLimit(user.id, rlLimit, route)
+
+      if (!rl.allowed) {
+        let response = new NextResponse('Too Many Requests', {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(rlLimit),
+            'X-RateLimit-Remaining': String(rl.remaining),
+            'X-RateLimit-Reset': String(Math.floor(rl.reset / 1000)),
+          },
+        })
+        response = addCorsHeaders(response, origin)
+        return response
+      }
+
+      rateLimitInfo = rl
+      rateLimitLimit = rlLimit
+    } catch (err) {
+      console.error('[chat] Rate limit check failed:', err)
+    }
   }
 
   // Log metadata only (avoid logging user-provided text)
@@ -213,48 +263,106 @@ export async function POST(req: Request) {
   // Call the AI model
   let result: any
   try {
-    result = await getAI().models.generateContent({
+    result = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: systemPrompt + userText,
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: systemPrompt }]
+        },
+        ...formattedMessages
+      ],
+      config: {
+        temperature: 0.7,
+        topP: 0.9
+      }
     })
   } catch (err: any) {
-    console.error('[chat] AI generation failed:', err)
+    console.error('[chat] AI generation failed:', {
+      message: err?.message,
+      status: err?.status,
+      statusCode: err?.statusCode,
+      error: err
+    })
 
     const statusCode = err?.status ?? err?.statusCode
     if (statusCode === 429) {
-      return new NextResponse('AI generation rate-limited, please retry shortly', { status: 429 })
+      let response = new NextResponse('AI generation rate-limited, please retry shortly', { status: 429 })
+      const origin = req.headers.get('origin')
+      response = addCorsHeaders(response, origin)
+      return response
     }
 
     if (typeof statusCode === 'number' && statusCode >= 500) {
-      return new NextResponse('AI service unavailable, please try again later', { status: 502 })
+      let response = new NextResponse('AI service unavailable, please try again later', { status: 502 })
+      const origin = req.headers.get('origin')
+      response = addCorsHeaders(response, origin)
+      return response
     }
 
-    return new NextResponse('AI generation failed', { status: 500 })
+    let response = new NextResponse('AI generation failed', { status: 500 })
+    const origin = req.headers.get('origin')
+    response = addCorsHeaders(response, origin)
+    return response
   }
 
   // Safely extract the text from the response
   let textResult = ''
-  if (Array.isArray(result?.candidates) && result.candidates.length > 0) {
+  
+  // Log the response structure for debugging
+  console.log('[chat] AI response structure:', {
+    hasText: !!result?.text,
+    textType: typeof result?.text,
+    hasCandidates: Array.isArray(result?.candidates),
+    candidatesLength: result?.candidates?.length,
+    keys: Object.keys(result || {}).slice(0, 10)
+  })
+
+  // Handle text getter (standard GenAI SDK pattern in GenerateContentResponse)
+  if (result?.text) {
+    textResult = result.text
+  }
+  // Handle candidates array pattern (fallback)
+  else if (Array.isArray(result?.candidates) && result.candidates.length > 0) {
     textResult = extractTextFromCandidate(result.candidates[0])
-  } else if (result?.candidate) {
+  } 
+  // Handle single candidate
+  else if (result?.candidate) {
     textResult = extractTextFromCandidate(result.candidate)
-  } else if (typeof result?.content === 'string') {
+  }
+  // Handle direct content string
+  else if (typeof result?.content === 'string') {
     textResult = result.content
+  } else if (typeof result?.response?.text === 'function') {
+    // Some SDK shapes (mock) return getGenerativeModel().generateContent() -> { response: { text: () => '...' } }
+    textResult = result.response.text()
   }
 
   if (!textResult || !textResult.trim()) {
     console.error('[chat] AI returned empty response')
-    return new NextResponse('AI returned an empty response', { status: 502 })
+    let response = new NextResponse('AI returned an empty response', { status: 502 })
+    const origin = req.headers.get('origin')
+    response = addCorsHeaders(response, origin)
+    return response
   }
 
   // Log response metadata (avoid logging content)
   console.log('[chat] Responding with generated text (length)', { length: textResult.length })
 
-  const rateLimitInfo = (user as any)._rateLimit
-  const rateLimitLimit = (user as any)._rateLimitLimit
-  const headers: Record<string,string> = {}
-  if (typeof rateLimitLimit === 'number') headers['X-RateLimit-Limit'] = String(rateLimitLimit)
-  if (rateLimitInfo) headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+  const headers: Record<string, string> = {}
 
-  return new NextResponse(textResult, { headers })
+  if (typeof rateLimitLimit === 'number') {
+    headers['X-RateLimit-Limit'] = String(rateLimitLimit)
+  }
+
+  if (rateLimitInfo) {
+    headers['X-RateLimit-Remaining'] = String(rateLimitInfo.remaining)
+    if (rateLimitInfo.reset != null) {
+      headers['X-RateLimit-Reset'] = String(Math.floor(rateLimitInfo.reset / 1000))
+    }
+  }
+  let response = new NextResponse(textResult, { headers })
+  //const origin = req.headers.get('origin')
+  response = addCorsHeaders(response, origin)
+  return response
 }

@@ -44,7 +44,7 @@ export function CoursePill({
     <motion.div ref={ref} className="relative" style={{ opacity, scale, rotate, skewX, x, left }}>
       <Pill
         variant={variant}
-        className="gap-4 px-4 text-[7vw] shadow-2xl sm:pl-8 sm:text-[5vw] lg:text-[min(4vw,4rem)]"
+        className="gap-4 px-4 text-[5.5vw] shadow-2xl sm:pl-8 sm:text-[5vw] lg:text-[min(4vw,4rem)]"
       >
         <span className="capitalize">{topic}</span>
         <span className="rounded-full bg-white p-[0.15em] shadow-md">

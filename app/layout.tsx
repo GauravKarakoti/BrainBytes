@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { UserProvider } from '@auth0/nextjs-auth0/client'
-import { ThemeProvider } from '@/components/theme/provider'
 import { Analytics } from '@/components/Analytics'
 import { Toaster } from '@/components/ui/sonner'
 import { ExitModal } from '@/components/modals/exit-modal'
@@ -9,6 +8,7 @@ import { PracticeModal } from '@/components/modals/practice-modal'
 import { AppProviders } from '@/components/providers'
 import { sharedMetadata } from '@/config/metadata'
 import { Chatbot } from '@/components/chatbot/Chatbot'
+import { ScrollToTop } from '@/components/scroll-to-top'
 
 import { fonts } from '@/styles/fonts'
 import '@/styles/globals.css'
@@ -30,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${fonts} flex flex-col font-sans`}>
+    <html lang="en" suppressHydrationWarning className={fonts}>
+      <body className="flex flex-col font-sans">
         <UserProvider>
           <ThemeProvider attribute="class" enableSystem disableTransitionOnChange>
             <AppProviders>
@@ -39,8 +39,18 @@ export default function RootLayout({
               <HeartsModal />
               <PracticeModal />
               {children}
+              <ScrollToTop />
               <Chatbot />
-              <Toaster position="top-right" richColors />
+              <Toaster 
+                position="top-right" 
+                richColors 
+                expand={true}
+                closeButton
+                duration={4000}
+                toastOptions={{
+                  className: 'font-sans',
+                }}
+              />
             </AppProviders>
           </ThemeProvider>
         </UserProvider>

@@ -2,8 +2,7 @@
 
 import { and, eq, sql } from 'drizzle-orm'
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { byteTokenContract, B_DECIMALS } from '@/lib/ethers'
-import { ethers } from 'ethers'
+import { B_DECIMALS, mintByte, parseUnitsFn } from '@/lib/ethers'
 import { db } from '@/db/drizzle'
 import {
   challengeProgress as challengeProgressSchema,
@@ -104,16 +103,35 @@ export async function upsertChallengeProgress(challengeId: number) {
   }
 
   if (!isCompleted) {
-    const currentPoints = currentUserProgress.points
-    const newPoints = currentPoints + POINTS_PER_CHALLENGE
-    const newLevelData = getLevelFromPoints(newPoints)
+    console.log(`[upsertChallengeProgress] Atomically incrementing points by ${POINTS_PER_CHALLENGE} and tokens by ${TOKENS_PER_CHALLENGE}`)
 
-    console.log('[upsertChallengeProgress] Updating user progress - points:', newPoints, 'level:', newLevelData.level)
-
+    // Use atomic database increment to prevent lost updates in concurrent scenarios
     await db
       .update(userProgress)
       .set({
-        points: newPoints,
+        points: sql`points + ${POINTS_PER_CHALLENGE}`,
+        pendingTokens: sql`pending_tokens + ${TOKENS_PER_CHALLENGE}`,
+      })
+      .where(eq(userProgress.userId, userId))
+
+    // Read the updated points to calculate the new level (read-after-write pattern)
+    const updatedProgress = await db.query.userProgress.findFirst({
+      where: eq(userProgress.userId, userId),
+    })
+
+    if (!updatedProgress) {
+      throw new Error('Failed to read updated user progress')
+    }
+
+    const newPoints = updatedProgress.points
+    const newLevelData = getLevelFromPoints(newPoints)
+
+    console.log('[upsertChallengeProgress] Updated points to:', newPoints, 'level:', newLevelData.level)
+
+    // Update the level based on the new points value
+    await db
+      .update(userProgress)
+      .set({
         level: newLevelData.level,
       })
       .where(eq(userProgress.userId, userId))
@@ -121,11 +139,13 @@ export async function upsertChallengeProgress(challengeId: number) {
     console.log("Current User Progress:",currentUserProgress)
     if (currentUserProgress.wallet_address) {
       try {
-        const amount = ethers.parseUnits(TOKENS_PER_CHALLENGE.toString(), B_DECIMALS);
-        const tx = await byteTokenContract.mint(currentUserProgress.wallet_address, amount);
-        console.log(`Minting ${TOKENS_PER_CHALLENGE} BYTE to ${currentUserProgress.wallet_address}, tx: ${tx.hash}`);
+        const amount = parseUnitsFn(TOKENS_PER_CHALLENGE.toString(), B_DECIMALS);
+        const tx = await mintByte(currentUserProgress.wallet_address, amount);
+        // writeContract often returns an object with a `hash` property
+        const txHash = (tx as any)?.hash ?? (tx as any) ?? ''
+        console.log(`Minting ${TOKENS_PER_CHALLENGE} BYTE to ${currentUserProgress.wallet_address}, tx: ${txHash}`);
       } catch (error) {
-        console.error("Failed to mint BYTE tokens:", error);
+        console.error('Failed to mint BYTE tokens:', error);
       }
     }
 

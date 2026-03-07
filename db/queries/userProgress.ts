@@ -34,24 +34,34 @@ export const getUserProgress = async (userId?: string | null): Promise<UserProgr
   )(_userId as string)
 }
 
-export const getUserSubscription = async () => {
-  const user = await getOptionalUser()
+export const getUserSubscription = async (userId?: string | null) => {
+  let _userId = userId
 
-  if (!user) return null
+  if (!_userId) {
+    const user = await getOptionalUser()
+    if (!user) return null
+    _userId = user.id
+  }
 
   const data = await db.query.userSubscription.findFirst({
-    where: ({ userId: uid }, { eq }) => eq(uid, user.id),
-  });
+    where: ({ userId: uid }, { eq }) => eq(uid, _userId as string),
+  })
 
   if (!data) return null;
 
-  const isActive =
+  const isStripeActive =
+    !data.isCryptoSubscription &&
     data.stripePriceId &&
     data.stripeCurrentPeriodEnd &&
     data.stripeCurrentPeriodEnd.getTime() + 86_400_000 > Date.now();
 
+  const isCryptoActive =
+    data.isCryptoSubscription &&
+    data.cryptoCurrentPeriodEnd &&
+    data.cryptoCurrentPeriodEnd.getTime() + 86_400_000 > Date.now();
+
   return {
     ...data,
-    isActive: !!isActive,
+    isActive: !!isStripeActive || !!isCryptoActive,
   };
 };

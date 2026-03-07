@@ -16,6 +16,7 @@ export const userProgress = pgTable('user_progress', {
   gems: integer('gems').notNull().default(0),
   wallet_address: text('wallet_address').unique(),
   level: integer('level').notNull().default(0),
+  pendingTokens: integer('pending_tokens').notNull().default(0),
 })
 
 export const userProgressRelations = relations(userProgress, ({ one, many }) => ({

@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
 import { ShoppingBag, Gem } from 'lucide-react'
 import { ShopGrid } from '@/components/user/shop/ShopGrid'
+import { SubscriptionCard } from '@/components/user/SubscriptionCard'
 import { getUserProgress } from '@/db/queries/userProgress'
+import { getSubscriptionStatus } from '@/actions/user-subscription'
 import { SHOP_ITEMS } from '@/config/shop'
 import { WalletManager } from '@/components/user/ConnectWalletButton'
 import { BYTEBalance } from '@/lib/token'
@@ -12,6 +14,7 @@ export default async function Shop() {
   const userId = user.id
 
   const userProgress = await getUserProgress(userId)
+  const subscriptionStatus = await getSubscriptionStatus()
 
   if (!userProgress) {
     redirect('/courses')
@@ -61,6 +64,16 @@ export default async function Shop() {
         <div className="sm:col-span-1">
           <WalletManager
             savedwallet_address={userProgress.wallet_address || null}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-lg border-2 bg-card p-6">
+        <h2 className="mb-6 text-2xl font-bold">Premium Subscription</h2>
+        <div className="flex justify-center">
+          <SubscriptionCard
+            isActive={subscriptionStatus.isActive}
+            isCryptoSubscription={subscriptionStatus.isCryptoSubscription}
           />
         </div>
       </div>
