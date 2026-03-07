@@ -2,8 +2,9 @@
 
 import { eq } from 'drizzle-orm'
 import { revalidateTag } from 'next/cache'
-import { byteTokenContract, B_DECIMALS } from '@/lib/ethers'
-import { ethers } from 'ethers'
+// 1. Import the viem helpers exported from your lib instead of the non-existent ethers contract
+import { mintByte, parseUnitsFn, B_DECIMALS } from '@/lib/ethers'
+import { Address } from 'viem' // 2. Import Address type from viem for type casting
 import { db } from '@/db/drizzle'
 import { userProgress } from '@/db/schema'
 import { requireUser } from '@/lib/auth0'
@@ -38,16 +39,14 @@ export async function claimPendingTokens() {
   }
 
   try {
-    // Mint all pending tokens in a single transaction
-    const amount = ethers.parseUnits(pendingTokens.toString(), B_DECIMALS)
-    const tx = await byteTokenContract.mint(currentUserProgress.wallet_address, amount)
+    // 3. Use your exported viem parseUnitsFn
+    const amount = parseUnitsFn(pendingTokens.toString(), B_DECIMALS)
+    
+    // 4. Use your exported viem mintByte function (make sure to cast the address)
+    const txHash = await mintByte(currentUserProgress.wallet_address as Address, amount)
     
     console.log(`[claimPendingTokens] Minting ${pendingTokens} BYTE to ${currentUserProgress.wallet_address}`)
-    console.log(`[claimPendingTokens] Transaction hash: ${tx.hash}`)
-
-    // Wait for transaction confirmation
-    const receipt = await tx.wait()
-    console.log(`[claimPendingTokens] Transaction confirmed in block: ${receipt?.blockNumber}`)
+    console.log(`[claimPendingTokens] Transaction hash: ${txHash}`)
 
     // Reset pending tokens to 0 after successful mint
     await db
@@ -66,7 +65,7 @@ export async function claimPendingTokens() {
     return { 
       success: true, 
       amount: pendingTokens,
-      txHash: tx.hash 
+      txHash: txHash // 5. Return the txHash directly
     }
   } catch (error: any) {
     console.error('[claimPendingTokens] Failed to mint tokens:', error)
