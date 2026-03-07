@@ -37,7 +37,7 @@ export function Hero() {
   const { user, isLoading } = useUser()
 
   return (
-    <section className="relative overflow-hidden px-4 pb-8 pt-32 lg:pt-24">
+    <section className="relative overflow-hidden px-4 pb-8 pt-20 sm:pt-32 lg:pt-24">
       <AnimatedTitle>
         <h1 className="flex w-full flex-col items-center justify-center gap-2 text-balance py-6 text-center font-display text-3xl font-bold capitalize leading-normal tracking-tighter sm:text-4xl sm:leading-snug md:gap-4 md:text-6xl">
           <span>
@@ -58,7 +58,7 @@ export function Hero() {
           </span>
         </h1>
       </AnimatedTitle>
-      <div className="mx-auto my-12 min-h-40 max-w-80">
+      <div className="mx-auto my-8 min-h-40 max-w-80 sm:my-12">
         {isLoading ? (
           <Button variant="ghost" size="lg" className="w-full" disabled>
             <span className="truncate">Loading…</span>

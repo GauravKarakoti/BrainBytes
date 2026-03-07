@@ -29,8 +29,8 @@ export const savewallet_address = async (wallet_address: string) => {
     return { success: true, wallet_address: wallet_address }
   } catch (error) {
     console.error('Error saving wallet address:', error)
-    if (error instanceof Error && error.message.includes('duplicate key')) {
-        return { error: 'This wallet address is already in use.' }
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+        return { error: 'This wallet is already connected to another account' }
     }
     return { error: 'Failed to save wallet address' }
   }

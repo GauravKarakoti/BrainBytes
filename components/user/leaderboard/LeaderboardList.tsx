@@ -34,22 +34,23 @@ export function LeaderboardItem({
 
   return (
     <div
-      className={`flex items-center gap-3 md:gap-4 rounded-lg p-3 md:p-4 transition-colors hover:bg-muted/50 ${
+      className={`flex items-center gap-2 sm:gap-3 md:gap-4 rounded-lg p-3 md:p-4 transition-colors hover:bg-muted/50 ${
         isCurrentUser ? 'bg-primary/10 ring-2 ring-primary/50' : ''
       }`}
+      role="listitem"
     >
-      <div className={`min-w-[2.5rem] md:min-w-[3rem] text-center text-lg md:text-2xl font-bold ${getRankColor(rank)}`}>
+      <div className={`min-w-[2rem] sm:min-w-[2.5rem] md:min-w-[3rem] text-center text-base sm:text-lg md:text-2xl font-bold ${getRankColor(rank)}`}>
         {getRankBadge(rank)}
       </div>
-      <div className="relative size-10 md:size-12 overflow-hidden rounded-full border-2 border-border">
+      <div className="relative size-8 sm:size-10 md:size-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-border">
         <NextImage src={userImgSrc} alt={userName} fill className="object-cover" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold truncate ${isCurrentUser ? 'text-primary' : ''}`}>
+        <p className={`text-xs sm:text-sm md:text-base font-semibold truncate ${isCurrentUser ? 'text-primary' : ''}`}>
           {userName}
-          {isCurrentUser && <span className="ml-2 text-xs text-muted-foreground">(You)</span>}
+          {isCurrentUser && <span className="ml-1 sm:ml-2 text-xs text-muted-foreground">(You)</span>}
         </p>
-        <p className="text-sm text-muted-foreground">{points.toLocaleString()} XP</p>
+        <p className="text-xs sm:text-sm text-muted-foreground">{points.toLocaleString()} XP</p>
       </div>
     </div>
   )
@@ -57,14 +58,14 @@ export function LeaderboardItem({
 
 export function LeaderboardSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 sm:space-y-3 md:space-y-4">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex animate-pulse items-center gap-4 rounded-lg bg-muted/50 p-4">
-          <div className="h-8 w-12 rounded bg-muted" />
-          <div className="size-12 rounded-full bg-muted" />
+        <div key={i} className="flex animate-pulse items-center gap-2 sm:gap-3 md:gap-4 rounded-lg bg-muted/50 p-3 md:p-4">
+          <div className="h-6 w-8 sm:w-10 md:w-12 rounded bg-muted" />
+          <div className="size-8 sm:size-10 md:size-12 flex-shrink-0 rounded-full bg-muted" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 w-32 rounded bg-muted" />
-            <div className="h-3 w-24 rounded bg-muted" />
+            <div className="h-3 w-24 sm:w-32 rounded bg-muted" />
+            <div className="h-2 w-16 sm:w-24 rounded bg-muted" />
           </div>
         </div>
       ))}
@@ -84,7 +85,7 @@ type LeaderboardListProps = {
 
 export function LeaderboardList({ users, currentUserId }: LeaderboardListProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 sm:space-y-3" role="list">
       {users.map((user, index) => (
         <LeaderboardItem
           key={user.userId}
@@ -94,8 +95,8 @@ export function LeaderboardList({ users, currentUserId }: LeaderboardListProps) 
         />
       ))}
       {users.length === 0 && (
-        <div className="py-12 text-center text-muted-foreground">
-          <p>No users found. Be the first to join the leaderboard!</p>
+        <div className="py-8 sm:py-12 text-center text-muted-foreground">
+          <p className="text-sm sm:text-base">No users found. Be the first to join the leaderboard!</p>
         </div>
       )}
     </div>

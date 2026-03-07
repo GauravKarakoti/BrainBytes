@@ -56,10 +56,9 @@ jobs:
             
             console.log(`Critical: ${criticalCount}, High: ${highCount}`);
             
-            if (criticalCount > 0) {
-              core.setFailed(`Found ${criticalCount} critical vulnerabilities`);
+            if (criticalCount > 0 || highCount > 0) {
+              core.setFailed(`Found ${criticalCount} critical and ${highCount} high vulnerabilities`);
             }
-        continue-on-error: true
       
       - name: Upload audit report
         if: always()

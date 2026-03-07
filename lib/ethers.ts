@@ -19,8 +19,9 @@ const walletClient = createWalletClient({
 })
 
 const byteTokenAbi = [
-  { type: 'function', name: 'mint', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }] }
-]
+  "function mint(address to, uint256 amount)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)"
+];
 
 export const B_DECIMALS = 18
 

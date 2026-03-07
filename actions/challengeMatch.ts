@@ -63,7 +63,11 @@ export async function findOrJoinMatch(challengeId: number, language: string) {
       .where(eq(challengeMatches.id, pendingMatch.id))
       .returning()
 
-    await pusher.trigger(`private-match-${updatedMatch.id}`, 'match-start', {
+    await pusher.trigger(`private-user-${updatedMatch.playerOneId}`, 'match-start', {
+      match: updatedMatch,
+    })
+
+    await pusher.trigger(`private-user-${updatedMatch.playerTwoId}`, 'match-start', {
       match: updatedMatch,
     })
 

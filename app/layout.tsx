@@ -9,6 +9,7 @@ import { PracticeModal } from '@/components/modals/practice-modal'
 import { AppProviders } from '@/components/providers'
 import { sharedMetadata } from '@/config/metadata'
 import { Chatbot } from '@/components/chatbot/Chatbot'
+import { ScrollToTop } from '@/components/scroll-to-top'
 
 import { fonts } from '@/styles/fonts'
 import '@/styles/globals.css'
@@ -39,6 +40,7 @@ export default function RootLayout({
               <HeartsModal />
               <PracticeModal />
               {children}
+              <ScrollToTop />
               <Chatbot />
               <Toaster position="top-right" richColors />
             </AppProviders>

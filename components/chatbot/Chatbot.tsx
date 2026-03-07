@@ -102,7 +102,7 @@ export function Chatbot() {
         sideOffset={16}
         className="z-50 w-[calc(100vw-32px)] max-w-md rounded-4xl p-0"
       >
-        <div className="flex h-[500px] flex-col">
+        <div className="flex h-[min(500px,70vh)] flex-col">
           <div className="rounded-t-4xl border-b bg-surface-variant p-4">
             <h3 className="text-center text-lg font-bold">ByteBot Assistant</h3>
             <p className="text-center text-sm text-muted-foreground">
