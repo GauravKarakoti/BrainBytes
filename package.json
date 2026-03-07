@@ -10,6 +10,7 @@
     "env:load:next": "dotenvx run --convention=nextjs --",
     "env:load": "dotenvx run -f .env --",
     "env:gen": "dotenvx genexample -f .env",
+    "deploy": "cross-env TS_NODE_SKIP_PROJECT=true hardhat run scripts/deploy.js --network sepolia",
     "db:gen": "pnpm env:load pnpm drizzle-kit generate",
     "db:migrate": "pnpm env:load pnpm drizzle-kit migrate",
     "db:studio": "pnpm env:load pnpm drizzle-kit studio",
@@ -97,6 +98,7 @@
     "autoprefixer": "^10.0.1",
     "better-sqlite3": "^12.5.0",
     "chai": "^4.5.0",
+    "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^8",
     "eslint-config-next": "^16.1.1",
@@ -119,17 +121,6 @@
     "tsx": "^4.11.0",
     "typechain": "^8.3.2",
     "typescript": "^5.4.5",
-    "vitest": "^4.0.16",
-    "@testing-library/react": "^14.2.1",
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/user-event": "^14.5.2",
-    "@vitest/coverage-v8": "^1.6.0",
-    "jsdom": "^24.0.0",
-    "lint-staged": {
-      "*.{js,jsx,ts,tsx}": [
-        "eslint --fix",
-        "prettier --write"
-      ]
-    }
+    "vitest": "^4.0.16"
   }
 }

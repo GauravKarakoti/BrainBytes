@@ -1,8 +1,3 @@
-// app/components/user/SideMenu.tsx
-import NextLink from 'next/link'
-import { SideMenuItem } from '@/components/user/SideMenuItem'
-import { SideMenuThemeButton } from '@/components/user/SideMenuThemeButton'
-import { SideMenuUserButton } from '@/components/user/SideMenuUserButton'
 "use client";
 
 import NextLink from "next/link";

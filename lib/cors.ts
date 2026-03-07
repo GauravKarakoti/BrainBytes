@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server'
  * Format: comma-separated list of origins (e.g., "https://example.com,https://app.example.com")
  */
 function getAllowedOrigins(): string[] {
-  const allowedOriginsEnv = process.env.ALLOWED_ORIGINS || ''
+  const allowedOriginsEnv = process.env.ALLOWED_ORIGINS
   
   const defaultOrigins = [
     'http://localhost:3000',

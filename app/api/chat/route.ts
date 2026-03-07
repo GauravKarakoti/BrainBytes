@@ -3,10 +3,9 @@ import { NextResponse, NextRequest } from "next/server";
 import { requireUser } from "@/lib/auth0";
 import { resolveUserTier, checkRateLimit } from '@/lib/rateLimit'
 import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
-import { metisGoerli } from "viem/chains";
 
 const googleApiKey =
-  process.env.GOOGLE_API_KEY ?? process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+  process.env.GOOGLE_API_KEY;
 
 if (!googleApiKey) {
   throw new Error(

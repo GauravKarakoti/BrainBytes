@@ -1,10 +1,9 @@
-import pkg from 'hardhat';
-const { ethers } = pkg;
+const hre = require("hardhat");
 
 async function main() {
   console.log("Deploying ByteToken contract...");
 
-  const ByteToken = await ethers.getContractFactory("ByteToken");
+  const ByteToken = await hre.ethers.getContractFactory("ByteToken");
 
   const byteToken = await ByteToken.deploy();
 

@@ -140,7 +140,7 @@ export async function upsertChallengeProgress(challengeId: number) {
     if (currentUserProgress.wallet_address) {
       try {
         const amount = parseUnitsFn(TOKENS_PER_CHALLENGE.toString(), B_DECIMALS);
-        const tx = await mintByte(currentUserProgress.wallet_address, amount);
+        const tx = await mintByte(currentUserProgress.wallet_address as `0x${string}`, amount);
         // writeContract often returns an object with a `hash` property
         const txHash = (tx as any)?.hash ?? (tx as any) ?? ''
         console.log(`Minting ${TOKENS_PER_CHALLENGE} BYTE to ${currentUserProgress.wallet_address}, tx: ${txHash}`);
