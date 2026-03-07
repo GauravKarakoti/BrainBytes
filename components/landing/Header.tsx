@@ -20,8 +20,8 @@ export function Header() {
   return (
     <header className="relative flex justify-center">
       <div className="z-1 flex w-full items-center justify-between gap-2 px-2 sm:px-8">
-        <div className="flex flex-1 items-center justify-start gap-1 max-sm:hidden">
-          <Button variant="ghost" size="icon" asChild>
+        <div className="flex flex-1 items-center justify-start gap-1">
+          <Button variant="ghost" size="icon" asChild className="max-sm:hidden">
             <a
               href="https://github.com/GauravKarakoti/BrainBytes"
               target="_blank"
@@ -49,22 +49,28 @@ export function Header() {
               Loading...
             </Button>
           ) : isAuthenticated ? (
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" asChild>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button variant="ghost" asChild className="max-sm:hidden">
                 <NextLink href="/learn">Dashboard</NextLink>
               </Button>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" asChild className="max-sm:hidden">
                 <a href="/api/auth/logout">Logout</a>
               </Button>
               {displayAvatar ? (
-                <Image
-                  src={displayAvatar}
-                  alt={displayName}
-                  width={36}
-                  height={36}
-                  className="size-9 rounded-full border border-border object-cover"
-                />
-              ) : null}
+                <NextLink href="/learn" aria-label="Go to dashboard">
+                  <Image
+                    src={displayAvatar}
+                    alt={displayName}
+                    width={36}
+                    height={36}
+                    className="size-9 rounded-full border border-border object-cover"
+                  />
+                </NextLink>
+              ) : (
+                <Button variant="ghost" size="sm" asChild className="sm:hidden">
+                  <NextLink href="/learn">Dashboard</NextLink>
+                </Button>
+              )}
             </div>
           ) : (
             <Button variant="ghost" asChild>
@@ -73,9 +79,7 @@ export function Header() {
           )}
         </div>
       </div>
-      <div className="fixed bottom-4 right-4 z-50 sm:hidden">
-        <ThemeToggle className="size-12 border border-solid border-border bg-card/40 backdrop-blur-lg"></ThemeToggle>
-      </div>
+
     </header>
   )
 }

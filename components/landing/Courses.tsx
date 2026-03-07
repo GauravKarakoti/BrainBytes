@@ -25,7 +25,7 @@ const item = {
 
 export function Courses() {
   return (
-    <section className="space-y-20 px-4 py-8 sm:px-[10%] md:py-20">
+    <section className="space-y-12 px-4 py-8 sm:space-y-20 sm:px-[10%] md:py-20">
       <AnimatedTitle>
         <h2 className="heading-section">
           Choose your <span className="text-highlight-depth">language</span>

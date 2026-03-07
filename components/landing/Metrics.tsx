@@ -80,7 +80,7 @@ export function Metrics({ children }: PropsWithChildren) {
           </MetricsItem>
         </li>
         <li className="z-1 col-start-1 col-end-13 sm:col-end-10">
-          <div className="">{children}</div>
+          <div className="overflow-x-clip">{children}</div>
         </li>
       </ul>
       <motion.div className="bg-primary-dark fixed inset-0 -z-1" style={{ opacity }} />
