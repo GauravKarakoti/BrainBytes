@@ -47,48 +47,27 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
 
     if (option.correct) {
       play('correct')
-      // setTimeout(() => {
-        startTransition(() => {
-          // try{
-          // const result = 
-          // await 
-          upsertChallengeProgress(challenge.id)
-            // .then((result) => {
-              // if (result?.error === 'already_completed') {
-              //   // Challenge already completed, just move to next one
-              //   console.log('Challenge already completed, moving to next')
-              //   onComplete()
-              // } else if (result?.error) {
-              //   toast.error('Failed to save progress')
-              //   console.error('Challenge progress error:', result.error)
-              // } 
-              // else {
-            })
-                onComplete()
-          //     }
-          // } catch(error) {
-          //     console.error('Challenge progress error:', error)
-          //     toast.error('Something went wrong')
-          //   } finally{
-              setIsChecking(false)
-            // }
-       
+      startTransition(() => {
+        upsertChallengeProgress(challenge.id)
+      })
+      // Show feedback for 2 seconds before moving to next question
+      setTimeout(() => {
+        onComplete()
+      }, 2000)
     } else {
       play('incorrect')
       startTransition(async() => {
         try{
-        const res = await reduceHearts()
-          // .then((res) => {
-            if (res?.error === 'hearts') {
-              toast.error('No hearts left!')
-            }
+          const res = await reduceHearts()
+          if (res?.error === 'hearts') {
+            toast.error('No hearts left!')
           }
-          catch(error) {
-            console.error('Hearts error:', error)
-            toast.error('Something went wrong')
-          } finally{
-            setIsChecking(false)
-          }
+        } catch(error) {
+          console.error('Hearts error:', error)
+          toast.error('Something went wrong')
+        } finally{
+          setIsChecking(false)
+        }
       })
     }
   }
