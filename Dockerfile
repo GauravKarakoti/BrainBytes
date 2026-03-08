@@ -27,6 +27,9 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
+# Tell Next.js to generate a standalone build specifically for this Docker environment
+ENV BUILD_STANDALONE="true"
+
 RUN pnpm build
 
 # Production image, copy all the files and run next

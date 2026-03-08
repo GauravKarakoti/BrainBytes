@@ -65,7 +65,7 @@ export function Courses() {
   }, [category, debouncedSearch])
 
   return (
-    <section className="space-y-12 px-4 py-8 sm:space-y-20 sm:px-[10%] md:py-20">
+    <section className="space-y-12 px-4 sm:space-y-20 sm:px-[10%]">
       <AnimatedTitle>
         <h2 className="heading-section">
           Explore <span className="text-highlight-depth">BrainBytes</span>
