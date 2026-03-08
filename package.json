@@ -19,7 +19,7 @@
     "db:seed:all": "pnpm db:seed && pnpm db:seed:languages",
     "db:test-seed": "pnpm env:load pnpm tsx ./scripts/test-seed.ts",
     "db:update-users": "pnpm env:load pnpm tsx ./scripts/update-user-data.ts",
-    "prepare": "husky install",
+    "prepare": "husky",
     "test": "vitest",
     "test:unit": "vitest -c vitest.config.ts test/**/*.test.{ts,tsx}",
     "test:coverage": "vitest run --coverage"
@@ -46,7 +46,7 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.30.10",
+    "drizzle-orm": "^0.31.0",
     "framer-motion": "^11.1.7",
     "lucide-react": "^0.363.0",
     "modern-errors": "^7.0.1",
@@ -69,7 +69,7 @@
     "vaul": "^0.9.1",
     "viem": "^2.38.6",
     "wagmi": "^2.19.2",
-    "zod": "^4.1.12",
+    "zod": "^4.3.6",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
@@ -92,7 +92,7 @@
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^8",
-    "eslint-config-next": "^16.1.1",
+    "eslint-config-next": "^14.2.35",
     "eslint-config-prettier": "^9.1.0",
     "ethers": "^6.15.0",
     "husky": "^9.1.7",
