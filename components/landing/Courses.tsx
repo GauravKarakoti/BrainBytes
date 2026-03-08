@@ -56,7 +56,7 @@ export function Courses() {
       const matchesCategory = category === 'All' || course.category === category
       const matchesSearch =
         course.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        course.tags?.some((tag) =>
+        course.tags?.some((tag: any) =>
           tag.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
 
@@ -87,7 +87,7 @@ export function Courses() {
           <Button
             key={cat}
             size="sm"
-            variant={cat === category ? 'default' : 'outline'}
+            variant={cat === category ? 'default' : 'active'}
             onClick={() => setCategory(cat)}
           >
             {cat}

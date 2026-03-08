@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect } from 'next/navigation'
 import { ShoppingBag, Gem } from 'lucide-react'
 import { ShopGrid } from '@/components/user/shop/ShopGrid'

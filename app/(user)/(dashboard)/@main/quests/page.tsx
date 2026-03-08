@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect } from 'next/navigation'
 import { Trophy, Target } from 'lucide-react'
 import { QuestGrid } from '@/components/user/quests/QuestGrid'

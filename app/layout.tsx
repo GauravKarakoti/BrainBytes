@@ -12,6 +12,7 @@ import { ScrollToTop } from '@/components/scroll-to-top'
 
 import { fonts } from '@/styles/fonts'
 import '@/styles/globals.css'
+import { ThemeProvider } from '@/components/theme/provider'
 
 export const metadata: Metadata = {
   ...sharedMetadata,

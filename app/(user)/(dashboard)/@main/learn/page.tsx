@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import NextLink from 'next/link'
 import { redirect } from 'next/navigation'
 import { MoveLeft, Trophy, Star } from 'lucide-react'

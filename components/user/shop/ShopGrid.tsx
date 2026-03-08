@@ -12,7 +12,7 @@ const byteTokenAbi = [
   { type: 'function', name: 'transfer', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
   { type: 'function', name: 'allowance', inputs: [{ name: 'owner', type: 'address' }, { name: 'spender', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
   { type: 'function', name: 'approve', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
-];
+] as const;
 
 const BYTE_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS as Address;
 const SHOP_WALLET_ADDRESS = process.env.NEXT_PUBLIC_SHOP_WALLET_ADDRESS as Address;
@@ -79,18 +79,20 @@ export function ShopItemCard({ item, hearts, points, gems, bytes }: ShopItemCard
           const amount = parseUnits(item.byteCost!.toString(), B_DECIMALS)
           toast.loading('Please approve the transaction in your wallet...')
 
-          const tx = await walletClient.writeContract({
+          // 1. Request the connected account from the wallet
+          const [account] = await walletClient.requestAddresses()
+
+          // 2. Pass account and chain: null to satisfy viem's requirements
+          const txHash = await walletClient.writeContract({
             address: BYTE_TOKEN_ADDRESS,
-            abi: byteTokenAbi as any,
+            abi: byteTokenAbi, // No need for 'as any' since we added 'as const' above
             functionName: 'transfer',
             args: [SHOP_WALLET_ADDRESS, amount],
+            account,
+            chain: null,
           })
 
-          // `writeContract` can return an object containing a `hash` or the hash directly
-          const txHash =
-            (tx as { hash?: `0x${string}` } | `0x${string}` | undefined)?.hash ??
-            (tx as `0x${string}` | undefined)
-
+          // 3. viem returns the hash directly, no need to unpack it
           if (!txHash) {
             throw new Error('Failed to obtain transaction hash')
           }

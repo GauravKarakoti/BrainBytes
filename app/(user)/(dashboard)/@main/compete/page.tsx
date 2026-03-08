@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link'
 import { db } from '@/db/drizzle'
 import { challenges } from '@/db/schema'

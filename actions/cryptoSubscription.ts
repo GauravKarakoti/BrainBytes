@@ -5,7 +5,7 @@ import { db } from '@/db/drizzle';
 import { userSubscription } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { requireUser } from '@/lib/auth0';
-import { byteTokenContract } from '@/lib/ethers';
+import { BYTE_TOKEN_ADDRESS } from '@/lib/ethers';
 
 const SHOP_WALLET_ADDRESS = process.env.NEXT_PUBLIC_SHOP_WALLET_ADDRESS!;
 const SUBSCRIPTION_COST_BYTE = 20000; // 20000 BYTE tokens for subscription (equivalent to $20)
@@ -36,13 +36,10 @@ export const createCryptoSubscription = async (txHash: string) => {
       throw new Error("Transaction did not succeed");
     }
 
-    // Determine the BYTE token contract address from the imported contract
-    const tokenContractAddressRaw =
-      (byteTokenContract as any).target ?? (byteTokenContract as any).address;
-    if (!tokenContractAddressRaw) {
+    if (!BYTE_TOKEN_ADDRESS) {
       throw new Error("BYTE token contract address is not configured");
     }
-    const tokenContractAddress = tokenContractAddressRaw.toLowerCase();
+    const tokenContractAddress = BYTE_TOKEN_ADDRESS.toLowerCase();
 
     // Optionally ensure the transaction interacted with the BYTE token contract
     if (tx.to?.toLowerCase() !== tokenContractAddress) {
@@ -52,6 +49,11 @@ export const createCryptoSubscription = async (txHash: string) => {
     // Verify there is a Transfer event to the shop wallet for the expected amount
     const expectedAmount = ethers.parseUnits(SUBSCRIPTION_COST_BYTE.toString(), 18);
     const transferTopic = ethers.keccak256(ethers.toUtf8Bytes("Transfer(address,address,uint256)"));
+    
+    // Create an ethers Interface to decode the Transfer event
+    const tokenInterface = new ethers.Interface([
+      "event Transfer(address indexed from, address indexed to, uint256 value)"
+    ]);
 
     let validPaymentFound = false;
     for (const log of receipt.logs) {
@@ -62,7 +64,12 @@ export const createCryptoSubscription = async (txHash: string) => {
         continue;
       }
 
-      const parsedLog = byteTokenContract.interface.parseLog(log);
+      // Parse the log using the standalone interface
+      const parsedLog = tokenInterface.parseLog({
+        topics: log.topics.slice(),
+        data: log.data
+      });
+      
       if (!parsedLog) continue;
 
       const toAddress = (parsedLog.args.to as string).toLowerCase();

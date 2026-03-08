@@ -44,9 +44,9 @@ export async function verifyRedemption(itemId: number, txHash: string) {
   }
 
   try {
-    const receipt = await publicClient.getTransactionReceipt({ hash: txHash })
+    const receipt = await publicClient.getTransactionReceipt({ hash: txHash as `0x${string}` })
 
-    if (!receipt || receipt.status?.toString() !== '0x1' && receipt.status !== 1) {
+    if (!receipt || receipt.status !== 'success') {
       return { error: 'Transaction failed or not found.' }
     }
 
@@ -72,7 +72,7 @@ export async function verifyRedemption(itemId: number, txHash: string) {
           const parsed = decodeEventLog({ abi: byteTokenAbi, data: log.data, topics: log.topics })
           // decoded args will be in `args` with named keys matching inputs
           if (parsed && parsed.eventName === 'Transfer') {
-            const { from, to, value } = parsed.args as {
+            const { from, to, value } = parsed.args as unknown as {
               from: string
               to: string
               value: bigint

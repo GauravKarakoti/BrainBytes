@@ -9,7 +9,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts' // 1. Fix account import
 import { sepolia } from 'viem/chains' // 2. Import your target chain
 
-const BYTE_TOKEN_ADDRESS = (process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS as Address)
+export const BYTE_TOKEN_ADDRESS = (process.env.NEXT_PUBLIC_BYTE_TOKEN_ADDRESS as Address)
 const SERVER_WALLET_PRIVATE_KEY = process.env.SERVER_WALLET_PRIVATE_KEY
 const RPC_PROVIDER_URL = process.env.RPC_PROVIDER_URL
 
