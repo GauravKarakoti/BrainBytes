@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useTransition } from 'react'
+import { useEffect, useTransition, useRef } from 'react'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { sepolia } from 'wagmi/chains'
@@ -18,15 +18,18 @@ export const ConnectWalletButton = () => {
   const { disconnect } = useDisconnect()
   const { switchChain } = useSwitchChain()
   const [isPending, startTransition] = useTransition()
+  const hasAttemptedRef = useRef(false)
 
   useEffect(() => {
-    if (isConnected && address) {
+    // 3. Check the ref so it only fires once per connection cycle
+    if (isConnected && address && !hasAttemptedRef.current) {
       if (chainId === SEPOLIA_CHAIN_ID) {
+        hasAttemptedRef.current = true
         startTransition(async () => {
           const result = await savewallet_address(address)
-          console.log('Result:', result)
           if (result.error) {
-            if (result.error !== 'This wallet address is already in use.') {
+            // 4. Update the exact string to match saveWallet.ts
+            if (result.error !== 'This wallet is already connected to another account') {
               toast.error(result.error)
             }
           } else {

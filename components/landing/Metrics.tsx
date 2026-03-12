@@ -1,6 +1,6 @@
 'use client'
 
-import { type PropsWithChildren, useRef } from 'react'
+import { useRef } from 'react'
 import { useScroll, useTransform, useSpring, motion } from 'framer-motion'
 
 import { MetricsItem } from '@/components/landing/MetricsItem'
@@ -11,7 +11,7 @@ import FaceTwoSVG from '@/public/img/face-2.svg'
 import FaceThreeSVG from '@/public/img/face-3.svg'
 import FaceFourSVG from '@/public/img/face-4.svg'
 
-export function Metrics({ children }: PropsWithChildren) {
+export function Metrics() {
   const ref = useRef<HTMLUListElement>(null)
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -78,9 +78,6 @@ export function Metrics({ children }: PropsWithChildren) {
           >
             <FaceThreeSVG />
           </MetricsItem>
-        </li>
-        <li className="z-1 col-start-1 col-end-13 sm:col-end-10">
-          <div className="overflow-x-clip">{children}</div>
         </li>
       </ul>
       <motion.div className="bg-primary-dark fixed inset-0 -z-1" style={{ opacity }} />

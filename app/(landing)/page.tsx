@@ -9,9 +9,8 @@ export default function Home() {
     <>
       <Hero />
       <Courses />
-      <Metrics>
-        <Fluency />
-      </Metrics>
+      <Metrics />
+      <Fluency />
       <Reasons />
     </>
   )

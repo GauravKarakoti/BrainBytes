@@ -14,7 +14,7 @@ const variants: NonNullable<PillVariant>[] = [
 
 export function Fluency() {
   return (
-    <ul className="flex flex-col gap-8 px-[5%] lg:px-0 bg-background">
+    <ul className="flex flex-col gap-8 pb-20 px-[5%] lg:px-0 bg-background">
       {courses.map(({ icon, title, topic }, index) => (
         <li key={title} className="flex justify-center">
           <CoursePill

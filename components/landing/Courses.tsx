@@ -104,6 +104,7 @@ export function Courses() {
           </div>
         ) : (
           <AnimatedList
+            key={`${category}-${debouncedSearch}`}
             className="flex flex-wrap justify-center gap-2 text-center lg:gap-4"
             variants={list}
           >

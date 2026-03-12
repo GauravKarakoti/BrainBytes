@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import NextImage from 'next/image'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -27,6 +27,7 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [isPending, startTransition] = useTransition()
   const { play } = useSound()
+  const [localHearts, setLocalHearts] = useState(hearts)
 
   const handleSelect = (optionId: number) => {
     if (isChecking || isCorrect !== null) return
@@ -36,11 +37,14 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
   const handleCheck = async () => {
     if (selectedOption === null || isChecking) return
 
-    const option = challenge.challengeOptions.find(
-      (o) => o.id === selectedOption
-    )
-    
+    const option = challenge.challengeOptions.find(o => o.id === selectedOption)
     if (!option) return
+
+    // 3. Prevent action if they are out of hearts
+    if (!option.correct && localHearts <= 0) {
+      toast.error('No hearts left!')
+      return
+    }
 
     setIsChecking(true)
     setIsCorrect(option.correct)
@@ -50,14 +54,16 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
       startTransition(() => {
         upsertChallengeProgress(challenge.id)
       })
-      // Show feedback for 2 seconds before moving to next question
       setTimeout(() => {
         onComplete()
       }, 2000)
     } else {
       play('incorrect')
+      // 4. Optimistically reduce heart instantly
+      setLocalHearts(prev => Math.max(0, prev - 1)) 
+      
       startTransition(async() => {
-        try{
+        try {
           const res = await reduceHearts()
           if (res?.error === 'hearts') {
             toast.error('No hearts left!')
@@ -65,7 +71,7 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
         } catch(error) {
           console.error('Hearts error:', error)
           toast.error('Something went wrong')
-        } finally{
+        } finally {
           setIsChecking(false)
         }
       })
@@ -85,14 +91,15 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           {challenge.challengeOptions.map((option) => {
             const isSelected = selectedOption === option.id
-            const showCorrect = isCorrect !== null && option.correct
+            // 5. Update logic: Only show green/red styling for the option they ACTUALLY clicked
+            const showCorrect = isCorrect !== null && isSelected && option.correct
             const showIncorrect = isCorrect !== null && isSelected && !option.correct
 
             return (
               <button
                 key={option.id}
                 onClick={() => handleSelect(option.id)}
-                disabled={isChecking || isCorrect !== null}
+                disabled={isChecking || isCorrect !== null || localHearts <= 0}
                 className={`group relative rounded-lg border-2 p-6 text-left transition-all hover:border-primary ${
                   isSelected ? 'border-primary bg-primary/10' : 'border-border'
                 } ${showCorrect ? 'border-green-500 bg-green-500/10' : ''} ${
@@ -125,7 +132,7 @@ export function Quiz({ challenge, onComplete, hearts }: QuizProps) {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
         <div className="flex items-center gap-2 order-2 sm:order-1">
           <span className="text-xl sm:text-2xl">❤️</span>
-          <span className="text-lg sm:text-xl font-bold">{hearts}</span>
+          <span className="text-lg sm:text-xl font-bold">{localHearts}</span>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
           {isCorrect === null ? (
