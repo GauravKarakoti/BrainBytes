@@ -4,7 +4,7 @@ import { getDb } from '@/db/drizzle'
 import { challengeMatches } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { requireUser } from '@/lib/auth0'
-import { isOriginAllowed, addCorsHeaders } from '@/lib/cors'
+import { addCorsHeaders } from '@/lib/cors'
 
 let pusher: Pusher;
 
@@ -32,44 +32,58 @@ export async function POST(req: NextRequest) {
   const socketId = body.get('socket_id') as string
   const channel = body.get('channel_name') as string
 
-  const matchId = channel.replace('private-match-', '');
+  // 1. Handle user-specific channels
+  if (channel.startsWith('private-user-')) {
+    const requestedUserId = channel.replace('private-user-', '')
+    // Ensure we sanitize the ID exactly like the frontend does
+    const sanitizedUserId = userId.replace(/\|/g, '-')
 
-  if (!matchId) {
-      const response = addCorsHeaders(
-          new NextResponse('Forbidden: Invalid channel', { status: 403 }),
-          req.headers.get('origin')
+    if (requestedUserId !== sanitizedUserId) {
+      return addCorsHeaders(
+        new NextResponse('Forbidden: Not your user channel', { status: 403 }),
+        req.headers.get('origin')
       )
-      return response
-  }
+    }
+  } 
+  // 2. Handle match-specific channels
+  else if (channel.startsWith('private-match-')) {
+    const matchId = channel.replace('private-match-', '');
 
-  try {
+    try {
       const match = await getDb().query.challengeMatches.findFirst({
-          where: eq(challengeMatches.id, parseInt(matchId, 10))
+        where: eq(challengeMatches.id, parseInt(matchId, 10))
       });
 
-    if (!match || (match.playerOneId !== userId && match.playerTwoId !== userId)) {
-          const response = addCorsHeaders(
-              new NextResponse('Forbidden: Not part of match', { status: 403 }),
-              req.headers.get('origin')
-          )
-          return response
-      }
-  } catch (e) {
-      const response = addCorsHeaders(
-          new NextResponse('Internal Server Error', { status: 500 }),
+      if (!match || (match.playerOneId !== userId && match.playerTwoId !== userId)) {
+        return addCorsHeaders(
+          new NextResponse('Forbidden: Not part of match', { status: 403 }),
           req.headers.get('origin')
+        )
+      }
+    } catch (e) {
+      return addCorsHeaders(
+        new NextResponse('Internal Server Error', { status: 500 }),
+        req.headers.get('origin')
       )
-      return response
+    }
+  } 
+  // 3. Fallback for unexpected channels
+  else {
+    return addCorsHeaders(
+      new NextResponse('Forbidden: Invalid channel', { status: 403 }),
+      req.headers.get('origin')
+    )
   }
 
+  // Authorize the channel if all checks pass
   const userData = {
     user_id: userId,
   }
 
   const authResponse = getPusher().authorizeChannel(socketId, channel, userData)
-  const response = addCorsHeaders(
+  
+  return addCorsHeaders(
       NextResponse.json(authResponse),
       req.headers.get('origin')
   )
-  return response
 }
