@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils'
 import { useUser } from '@auth0/nextjs-auth0/client'
 import { useRouter } from 'next/navigation'
 import { CheckCircle, XCircle } from 'lucide-react'
-import { pusherClient } from '@/lib/pusherClient'
 
 const FINDING_TOAST_ID = 'competition-finding'
 const WAITING_TOAST_ID = 'competition-waiting'
@@ -100,18 +99,18 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
   useEffect(() => {
     if (!userId) return;
 
-    if (!pusherClient) return;
+    const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+      authEndpoint: '/api/pusher/auth',
+    });
 
     // Sanitize the user ID by replacing the pipe character
     const sanitizedUserId = userId.replace(/\|/g, '-');
     const userChannelName = `private-user-${sanitizedUserId}`;
     
-    let userChannel = pusherClient.channel(userChannelName);
-    if (!userChannel) {
-      userChannel = pusherClient.subscribe(userChannelName);
-    }
+    const userChannel = pusherClient.subscribe(userChannelName);
 
-    const handleMatchStart = (data: { match: ChallengeMatchType }) => {
+    userChannel.bind('match-start', (data: { match: ChallengeMatchType }) => {
       setMatch(data.match);
       setStatus('in_progress');
       dismissStatusToasts();
@@ -125,46 +124,34 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
         ? data.match.playerOneLanguage
         : data.match.playerTwoLanguage;
       setOpponentLanguage(oppLang);
-    };
-
-    userChannel.bind('match-start', handleMatchStart);
+    });
 
     let matchChannel: any = null;
     let matchChannelName: string | null = null;
-    
-    const handleOpponentProgress = (data: { senderId: string, codeLength: number, language: string }) => {
-      if (data.senderId !== userId) {
-        setOpponentCodeLength(data.codeLength);
-        setOpponentLanguage(data.language);
-      }
-    };
-
-    const handleMatchOver = (data: { winnerId: string }) => {
-      setWinnerId(data.winnerId);
-      setStatus('completed');
-      dismissStatusToasts();
-    };
-
     if (match?.id) {
       matchChannelName = `private-match-${match.id}`;
-      matchChannel = pusherClient.channel(matchChannelName);
-      if (!matchChannel) {
-        matchChannel = pusherClient.subscribe(matchChannelName);
-      }
+      matchChannel = pusherClient.subscribe(matchChannelName);
 
-      matchChannel.bind('opponent-progress', handleOpponentProgress);
-      matchChannel.bind('match-over', handleMatchOver);
+      matchChannel.bind('opponent-progress', (data: { senderId: string, codeLength: number, language: string }) => {
+        if (data.senderId !== userId) {
+          setOpponentCodeLength(data.codeLength);
+          setOpponentLanguage(data.language);
+        }
+      });
+
+      matchChannel.bind('match-over', (data: { winnerId: string }) => {
+        setWinnerId(data.winnerId);
+        setStatus('completed');
+        dismissStatusToasts();
+      });
     }
 
     return () => {
-      // Important: Unbind events so they don't fire multiple times, 
-      // but do NOT call pusherClient.disconnect() to avoid Strict Mode race conditions.
-      userChannel?.unbind('match-start', handleMatchStart);
-      
+      pusherClient.unsubscribe(userChannelName);
       if (matchChannel) {
-        matchChannel.unbind('opponent-progress', handleOpponentProgress);
-        matchChannel.unbind('match-over', handleMatchOver);
+        pusherClient.unsubscribe(matchChannelName!);
       }
+      pusherClient.disconnect();
     };
 
   }, [dismissStatusToasts, match?.id, userId]);
