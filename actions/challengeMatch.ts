@@ -27,6 +27,8 @@ const languageToJudge0Id: Record<string, number> = {
   'swift': 83,
 }
 
+const sanitizeId = (id: string) => id.replace(/\|/g, '-');
+
 export async function findOrJoinMatch(challengeId: number, language: string) {
   const user = await requireUser()
   const userId = user.id
@@ -63,13 +65,13 @@ export async function findOrJoinMatch(challengeId: number, language: string) {
       .where(eq(challengeMatches.id, pendingMatch.id))
       .returning()
 
-    await pusher.trigger(`private-user-${updatedMatch.playerOneId}`, 'match-start', {
+    await pusher.trigger(`private-user-${sanitizeId(updatedMatch.playerOneId)}`, 'match-start', {
       match: updatedMatch,
-    })
+    });
 
-    await pusher.trigger(`private-user-${updatedMatch.playerTwoId}`, 'match-start', {
+    await pusher.trigger(`private-user-${sanitizeId(updatedMatch.playerTwoId!)}`, 'match-start', {
       match: updatedMatch,
-    })
+    });
 
     return { status: 'joined', match: updatedMatch }
   } else {

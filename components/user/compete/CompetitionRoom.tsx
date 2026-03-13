@@ -104,7 +104,10 @@ export function CompetitionRoom({ challenge, language, initialCode }: Props) {
       authEndpoint: '/api/pusher/auth',
     });
 
-    const userChannelName = `private-user-${userId}`;
+    // Sanitize the user ID by replacing the pipe character
+    const sanitizedUserId = userId.replace(/\|/g, '-');
+    const userChannelName = `private-user-${sanitizedUserId}`;
+    
     const userChannel = pusherClient.subscribe(userChannelName);
 
     userChannel.bind('match-start', (data: { match: ChallengeMatchType }) => {
