@@ -33,15 +33,10 @@ export function LessonClient({ lesson, initialHearts, initialPercentage }: Props
   const { open: openExitModal } = useExitModal()
   const { open: openHeartsModal } = useHeartsModal()
   const [hearts, setHearts] = useState(initialHearts)
-  const [currentIndex, setCurrentIndex] = useState(0)
-
-  // Find the first incomplete challenge or start from beginning
-  useEffect(() => {
+  const [currentIndex, setCurrentIndex] = useState(() => {
     const firstIncompleteIndex = lesson.challenges.findIndex(c => !c.completed)
-    if (firstIncompleteIndex !== -1) {
-      setCurrentIndex(firstIncompleteIndex)
-    }
-  }, [lesson.challenges])
+    return firstIncompleteIndex !== -1 ? firstIncompleteIndex : 0
+  })
 
   const currentChallenge = lesson.challenges[currentIndex]
   const completedCount = lesson.challenges.filter(c => c.completed).length

@@ -130,7 +130,8 @@ export const WalletManager = ({
             const result = await savewallet_address(address)
             console.log('Result:', result)
             if (result.error) {
-              if (result.error !== 'This wallet address is already in use.') {
+              // FIX: Match the exact error string from saveWallet.ts
+              if (result.error !== 'This wallet is already connected to another account') {
                 toast.error(result.error)
               }
             } else {
