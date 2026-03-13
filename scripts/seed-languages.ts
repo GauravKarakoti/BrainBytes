@@ -171,11 +171,9 @@ async function seedLanguages() {
       }).returning();
       addedUnits++;
 
-      // 4. Insert its lessons
       for (const lessonData of unitData.lessons) {
         await db.insert(lessons).values({
           title: lessonData.title,
-          description: lessonData.description,
           order: lessonData.order,
           unitId: createdUnit.id,
         });
